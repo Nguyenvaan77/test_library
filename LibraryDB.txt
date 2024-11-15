@@ -1,46 +1,79 @@
 DROP DATABASE IF EXISTS LibraryDB;
 CREATE DATABASE IF NOT EXISTS LibraryDB;
 USE LibraryDB;
-CREATE TABLE Accounts (
-   AccountName varchar(255) primary key,
-   PassWord varchar(255) not null,
-   Email varchar(255) not null,
-   ContactNumber varchar(255) not null,
-   Role varchar(255) not null
-);
-INSERT INTO accounts (AccountName,PassWord,Email,ContactNumber,Role) values ("admin","admin","admin@gmail.com","123","Admin");
-INSERT INTO accounts (AccountName,PassWord,Email,ContactNumber,Role) values ("user","user","admin@gmail.com","321","User");
-CREATE TABLE Categories (
-   Category_ID int(11) auto_increment primary key,
-   Name varchar(255) not null,
-   Status varchar(255) not null,
-   Book_count int(11) not null
-);
-CREATE TABLE Authors (
-   Author_ID int(11) auto_increment primary key,
-   Name varchar(255) not null,
-   City varchar(255) not null,
-   Book_count varchar(255) not null
-);
-CREATE TABLE Publishers (
-   Publisher_ID int(11) auto_increment primary key,
-   Name varchar(255) not null,
-   City varchar(255) not null,
-   Book_count varchar(255) not null
-);
-CREATE TABLE Books (
-   Book_ID int(11) auto_increment primary key,
-   Name varchar(255) not null,
-   Category_ID int(11) not null,
-   Author_ID int(11) not null,
-   Publisher_ID int(11) not null,
-   Quantity int(11) not null
-);
-CREATE TABLE IssueBooks (
-   Issue_ID int(11) auto_increment primary key,
-   Book_ID int(11) not null,
-   User_ID int(11) not null,
-   IssueDate date not null,
-   DueDate date not null,
-   Status varchar(255) not null
-);
+
+CREATE TABLE `users` (
+   `user_ID` int NOT NULL,
+   `user_name` varchar(45) DEFAULT NULL,
+   `user_address` varchar(45) DEFAULT NULL,
+   `user_phoneno` varchar(45) DEFAULT NULL,
+   PRIMARY KEY (`user_ID`)
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `accounts` (
+   `AccountName` varchar(255) NOT NULL,
+   `PassWord` varchar(255) NOT NULL,
+   `Email` varchar(255) NOT NULL,
+   `ContactNumber` varchar(255) NOT NULL,
+   `Role` varchar(255) NOT NULL,
+   `user_ID` int DEFAULT NULL,
+   PRIMARY KEY (`AccountName`),
+   KEY `account_user_idx` (`user_ID`),
+   CONSTRAINT `account_user` FOREIGN KEY (`user_ID`) REFERENCES `users` (`user_ID`) ON UPDATE CASCADE
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `authors` (
+   `Author_ID` int NOT NULL AUTO_INCREMENT,
+   `Name` varchar(255) NOT NULL,
+   `City` varchar(255) NOT NULL,
+   `Book_count` varchar(255) NOT NULL,
+   PRIMARY KEY (`Author_ID`)
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `publishers` (
+   `Publisher_ID` int NOT NULL AUTO_INCREMENT,
+   `Name` varchar(255) NOT NULL,
+   `City` varchar(255) NOT NULL,
+   `Book_count` varchar(255) NOT NULL,
+   PRIMARY KEY (`Publisher_ID`)
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `categories` (
+   `Category_ID` int NOT NULL AUTO_INCREMENT,
+   `Name` varchar(255) NOT NULL,
+   `Status` varchar(255) NOT NULL,
+   `Book_count` int NOT NULL,
+   PRIMARY KEY (`Category_ID`)
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `books` (
+   `Book_ID` int NOT NULL AUTO_INCREMENT,
+   `Name` varchar(255) NOT NULL,
+   `Category_ID` int NOT NULL,
+   `Author_ID` int NOT NULL,
+   `Publisher_ID` int NOT NULL,
+   `Quantity` int NOT NULL,
+   PRIMARY KEY (`Book_ID`),
+   KEY `book_cate_idx` (`Category_ID`),
+   KEY `book_author_idx` (`Author_ID`),
+   KEY `book_pub_idx` (`Publisher_ID`),
+   CONSTRAINT `book_author` FOREIGN KEY (`Author_ID`) REFERENCES `authors` (`Author_ID`) ON UPDATE CASCADE,
+   CONSTRAINT `book_cate` FOREIGN KEY (`Category_ID`) REFERENCES `categories` (`Category_ID`) ON UPDATE CASCADE,
+   CONSTRAINT `book_pub` FOREIGN KEY (`Publisher_ID`) REFERENCES `publishers` (`Publisher_ID`) ON UPDATE CASCADE
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `issuebooks` (
+   `Issue_ID` int NOT NULL AUTO_INCREMENT,
+   `Book_ID` int NOT NULL,
+   `User_ID` int NOT NULL,
+   `IssueDate` date NOT NULL,
+   `DueDate` date NOT NULL,
+   `Status` varchar(255) NOT NULL,
+   PRIMARY KEY (`Issue_ID`),
+   KEY `issue_book_idx` (`Book_ID`),
+   KEY `issue_user_idx` (`User_ID`),
+   CONSTRAINT `issue_book` FOREIGN KEY (`Book_ID`) REFERENCES `books` (`Book_ID`) ON UPDATE CASCADE,
+   CONSTRAINT `issue_user` FOREIGN KEY (`User_ID`) REFERENCES `users` (`user_ID`) ON UPDATE CASCADE
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+

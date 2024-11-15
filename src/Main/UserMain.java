@@ -142,7 +142,7 @@ public class UserMain extends javax.swing.JFrame {
 
     private void txtaccountActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtaccountActionPerformed
         // TODO add your handling code here:
-        UserAccount userAccount = new UserAccount(this,UserName, PassWord);
+        UserDashBoard userAccount = new UserDashBoard(this,UserName, PassWord);
         this.setVisible(false);
         userAccount.setVisible(true);
     }//GEN-LAST:event_txtaccountActionPerformed

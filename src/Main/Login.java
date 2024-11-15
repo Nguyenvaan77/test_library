@@ -162,6 +162,11 @@ public class Login extends javax.swing.JFrame {
                 login_buttonMouseClicked(evt);
             }
         });
+        login_button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                login_buttonActionPerformed(evt);
+            }
+        });
 
         rSMaterialButtonCircle1.setText("SIGN UP");
         rSMaterialButtonCircle1.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -342,7 +347,8 @@ public class Login extends javax.swing.JFrame {
                 return;
             }
             if (UserNames.contains(Name)) {
-                new UserMain(this, Name, PassWord).setVisible(true);
+                //new UserDashBoard(this, Name, PassWord).setVisible(true);//new UserMain(this, Name, PassWord).setVisible(true);
+                new UserDashboard(Name).setVisible(true);
             } else {
                 new AdminDashboard(Name).setVisible(true);
             }
@@ -365,6 +371,10 @@ public class Login extends javax.swing.JFrame {
     private void txtpasswordActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtpasswordActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txtpasswordActionPerformed
+
+    private void login_buttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_login_buttonActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_login_buttonActionPerformed
 
     /**
      * @param args the command line arguments

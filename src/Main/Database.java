@@ -11,5 +11,5 @@ package Main;
 public class Database {
     public static String DB_Name = "LibraryDB";
     public static String DB_UserName = "root";
-    public static String DB_Password = "";
+    public static String DB_Password = "160220057a";
 }
