@@ -4,6 +4,7 @@
  */
 package Main;
 
+import com.github.lgooddatepicker.components.DatePickerSettings;
 import java.awt.Color;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -11,6 +12,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.Month;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -131,10 +134,12 @@ public class UserDashboard extends javax.swing.JFrame {
    
 //Turn off all button
     private void TurnOffButtons() {
-        Color color = new Color(51,51,51);
+        Color color = new Color(255,219,150);
         home_page_button.setBackground(color);
         edit_profile_button.setBackground(color);
         change_password_button.setBackground(color);
+        myBookShelf_button.setBackground(color);
+        goToLibrary_button.setBackground(color);
         logout_button.setBackground(color);
     }
 //---------------------------------------------------------------------------------------------------------------------------------------------
@@ -221,7 +226,7 @@ public class UserDashboard extends javax.swing.JFrame {
                 Logger.getLogger(AdminDashboard.class.getName()).log(Level.SEVERE, null, ex);
             }   
     }
-//*****************************************************************
+//***************************************************
 //Check a string Email is a valid Email.
     private boolean check_validEmail(String email){
         int indexFirst = email.indexOf('@');
@@ -282,7 +287,113 @@ public class UserDashboard extends javax.swing.JFrame {
     }
     
 //---------------------------------------------------------------------------------------------------------------------------------------------
-    
+//  0. Load greetingSearchPanel
+    private void SearchBook_greetingLoad(){
+        id_text.setText("");
+        bookName_text.setText("");
+        ngayMuon_date.setDate(LocalDate.of(2000,1,1));
+        ngayTra_date.setDate(LocalDate.of(2100,12,31));
+        trangThai_cbbox.setSelectedIndex(0);
+    }
+//Initialize BOOK SHELF - SEARCH BOOK
+    private void Searchbook_panelLoad() {
+        SearchBook_settingFormat();
+        SearchBook_panel_Load();
+        SearchBook_view_bookJSC_Load();
+    }
+//  1.1 Load All Setting format
+    private void SearchBook_settingFormat() {
+        DatePickerSettings dateSettings1 = new DatePickerSettings();// Khởi tạo 1 biến setting
+        DatePickerSettings dateSettings2 = new DatePickerSettings();// Khởi tạo 1 biến setting
+        dateSettings1.setFormatForDatesCommonEra("dd/MM/yyyy");     // Đặt định dạng cho DatePicker
+        dateSettings2.setFormatForDatesCommonEra("dd/MM/yyyy");     // Đặt định dạng cho DatePicker
+        ngayMuon_date.setSettings(dateSettings1);
+        ngayTra_date.setSettings(dateSettings2);
+    }
+//  1.2 Load buttons, text and comboBox of Search panel
+    private void SearchBook_panel_Load() {
+        SearchBook_buttonLoad();
+        SearchBook_textLoad();
+    }
+//  1.3 Load jscrool which review book's information
+    private void SearchBook_view_bookJSC_Load() {
+        String sql_cmd = " SELECT issuebooks.Book_ID,books.Name,issuebooks.IssueDate,issuebooks.DueDate,issuebooks.Status "
+                + " FROM issuebooks "
+                + " JOIN books ON issuebooks.Book_ID = books.Book_ID "
+                + " JOIN accounts ON issuebooks.User_ID = accounts.AccountName "
+                + " WHERE accounts.AccountName = ? AND issuebooks.Book_ID LIKE ? AND books.Name LIKE ? AND issuebooks.IssueDate >= ? AND issuebooks.DueDate <= ? ";
+        String cur_Status = (String) trangThai_cbbox.getSelectedItem();
+        if ((cur_Status).equals("All") == false) {
+            String extraString = " AND issuebooks.Status = ?";
+            sql_cmd += extraString;
+        }
+        try {
+            pst = con.prepareStatement(sql_cmd);
+            pst.setString(1, AccountName);
+            pst.setString(2, "%" + id_text.getText() + "%");
+            pst.setString(3, "%" + bookName_text.getText() + "%");
+            pst.setString(4, String.format("%d-%d-%d", ngayMuon_date.getDate().getYear(), ngayMuon_date.getDate().getMonthValue(), ngayMuon_date.getDate().getDayOfMonth()));
+            pst.setString(5, String.format("%d-%d-%d", ngayTra_date.getDate().getYear(), ngayTra_date.getDate().getMonthValue(), ngayTra_date.getDate().getDayOfMonth()));
+            if ((cur_Status).equals("All") == false) {
+                pst.setString(6, cur_Status);
+            }
+            rs = pst.executeQuery();
+            DefaultTableModel model = (DefaultTableModel) view_book_search_jscroll.getModel();
+            model.setNumRows(0);
+            while (rs.next()) {
+                Object[] obj = {rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5)};
+                model.addRow(obj);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(AdminDashboard.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+//  1.2.1 Load buttons of search panel
+    private void SearchBook_buttonLoad() {
+        traSach_button.setEnabled(true);
+        timKiem_button.setEnabled(true);
+        toanBo_button.setEnabled(true);
+    }
+
+//  1.2.2 Load text od search panel
+    private void SearchBook_textLoad() {
+
+    }
+//******************************************************************************
+    //  *** Return Book 
+//  1. Check What Row is chosen
+    private int indexOfRow() {// trả về thứ tự của dòng trong bảng bắt đầu từ 0, nếu không có dòng nào được chọn thì trả về - 1
+        return view_book_jscroll.getSelectedRow();
+    }
+    //  2. Return Book
+    private boolean returnBook() {
+        int indexBook = indexOfRow();
+
+        if (indexOfRow() == -1 || view_book_jscroll.getValueAt(indexBook, 4).equals("Returned")) {
+            return false;
+        }
+
+        String sql_cmd = "UPDATE issuebooks SET issuebooks.Status = ? WHERE issuebooks.Book_ID = ? ";
+        try {
+            pst = con.prepareStatement(sql_cmd);
+            pst.setString(1, "Returned");
+            pst.setString(2, (String) view_book_jscroll.getValueAt(indexBook, 0));
+            if(pst.executeUpdate() > 0){
+                return true;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(AdminDashboard.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+//*****************************************************************************
+//Check valid Date -- Condition : ngayMuon >= ngayTra && ngayMuon >= 01/01/2000 && ngayTra <= 31/12/2100
+    private boolean Check_searchDate() {
+        if (ngayMuon_date.getDate().isBefore(LocalDate.of(2000, 01, 01)) == true || ngayTra_date.getDate().isAfter(LocalDate.of(2100, 12, 31)) == true || ngayMuon_date.getDate().isAfter(ngayTra_date.getDate()) == true) {
+            return false;
+        } else return true;
+    }
+//--------------------------------------------------------------------------------------------------------------------------------------
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -305,6 +416,8 @@ public class UserDashboard extends javax.swing.JFrame {
         home_page_button = new javax.swing.JButton();
         logout_button = new javax.swing.JButton();
         change_password_button = new javax.swing.JButton();
+        myBookShelf_button = new javax.swing.JButton();
+        goToLibrary_button = new javax.swing.JButton();
         Parent_panel = new javax.swing.JPanel();
         home_page_panel = new javax.swing.JPanel();
         JPanel = new javax.swing.JPanel();
@@ -367,6 +480,28 @@ public class UserDashboard extends javax.swing.JFrame {
         account_name_label = new javax.swing.JLabel();
         jLabel35 = new javax.swing.JLabel();
         editprofile_resetButton = new javax.swing.JButton();
+        jLabel7 = new javax.swing.JLabel();
+        jLabel21 = new javax.swing.JLabel();
+        searchbook_panel = new javax.swing.JPanel();
+        view_search_book_jscroll = new javax.swing.JScrollPane();
+        view_book_search_jscroll = new rojeru_san.complementos.RSTableMetro();
+        search_panel = new javax.swing.JPanel();
+        tim_kiem_panel = new javax.swing.JLabel();
+        book_id_label = new javax.swing.JLabel();
+        book_name_label = new javax.swing.JLabel();
+        trang_thai_panel = new javax.swing.JLabel();
+        id_text = new app.bolivia.swing.JCTextField();
+        bookName_text = new app.bolivia.swing.JCTextField();
+        ngayMuon_label = new javax.swing.JLabel();
+        ngayTra_label = new javax.swing.JLabel();
+        ngayTra_date = new com.github.lgooddatepicker.components.DatePicker();
+        ngayMuon_date = new com.github.lgooddatepicker.components.DatePicker();
+        timKiem_button = new javax.swing.JButton();
+        traSach_button = new javax.swing.JButton();
+        trangThai_cbbox = new javax.swing.JComboBox<>();
+        toanBo_button = new javax.swing.JButton();
+        jLabel36 = new javax.swing.JLabel();
+        jLabel22 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -420,10 +555,10 @@ public class UserDashboard extends javax.swing.JFrame {
         jPanel3.setBackground(new java.awt.Color(73, 101, 128));
         jPanel3.setForeground(new java.awt.Color(51, 51, 51));
 
+        edit_profile_button.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/adminIcons/change_off_50.png"))); // NOI18N
+        edit_profile_button.setText("    Edit Profile");
         edit_profile_button.setBackground(new java.awt.Color(255, 219, 150));
         edit_profile_button.setFont(new java.awt.Font("Yu Gothic UI", 1, 18)); // NOI18N
-        edit_profile_button.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/adminIcons/change_info_26px.png"))); // NOI18N
-        edit_profile_button.setText("    Edit Profile");
         edit_profile_button.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         edit_profile_button.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -431,10 +566,10 @@ public class UserDashboard extends javax.swing.JFrame {
             }
         });
 
+        home_page_button.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/adminIcons/home_50px.png"))); // NOI18N
+        home_page_button.setText("   Home Page");
         home_page_button.setBackground(new java.awt.Color(255, 219, 150));
         home_page_button.setFont(new java.awt.Font("Yu Gothic UI", 1, 18)); // NOI18N
-        home_page_button.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/adminIcons/home_color_24px.png"))); // NOI18N
-        home_page_button.setText("   Home Page");
         home_page_button.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         home_page_button.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -442,10 +577,10 @@ public class UserDashboard extends javax.swing.JFrame {
             }
         });
 
+        logout_button.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/adminIcons/logout_50px.png"))); // NOI18N
+        logout_button.setText("     Logout");
         logout_button.setBackground(new java.awt.Color(255, 219, 150));
         logout_button.setFont(new java.awt.Font("Yu Gothic UI", 1, 18)); // NOI18N
-        logout_button.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/adminIcons/icons8_Exit_26px.png"))); // NOI18N
-        logout_button.setText("        Logout");
         logout_button.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         logout_button.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -453,14 +588,36 @@ public class UserDashboard extends javax.swing.JFrame {
             }
         });
 
+        change_password_button.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/adminIcons/change_pass_50px.png"))); // NOI18N
+        change_password_button.setText("Change Password");
         change_password_button.setBackground(new java.awt.Color(255, 219, 150));
         change_password_button.setFont(new java.awt.Font("Yu Gothic UI", 1, 18)); // NOI18N
-        change_password_button.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/adminIcons/change_pass_off_50.png"))); // NOI18N
-        change_password_button.setText("Change Password");
         change_password_button.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         change_password_button.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 change_password_buttonActionPerformed(evt);
+            }
+        });
+
+        myBookShelf_button.setBackground(new java.awt.Color(255, 219, 150));
+        myBookShelf_button.setFont(new java.awt.Font("Yu Gothic UI", 1, 18)); // NOI18N
+        myBookShelf_button.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/adminIcons/book_shelf_50px.png"))); // NOI18N
+        myBookShelf_button.setText("My BookShelf");
+        myBookShelf_button.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        myBookShelf_button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                myBookShelf_buttonActionPerformed(evt);
+            }
+        });
+
+        goToLibrary_button.setBackground(new java.awt.Color(255, 219, 150));
+        goToLibrary_button.setFont(new java.awt.Font("Yu Gothic UI", 1, 18)); // NOI18N
+        goToLibrary_button.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/adminIcons/library_2_50px.png"))); // NOI18N
+        goToLibrary_button.setText("Go to library");
+        goToLibrary_button.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        goToLibrary_button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                goToLibrary_buttonActionPerformed(evt);
             }
         });
 
@@ -473,22 +630,28 @@ public class UserDashboard extends javax.swing.JFrame {
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(edit_profile_button, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(home_page_button, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(change_password_button, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(logout_button, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(change_password_button, javax.swing.GroupLayout.DEFAULT_SIZE, 230, Short.MAX_VALUE)
+                    .addComponent(logout_button, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(myBookShelf_button, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(goToLibrary_button, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addGap(0, 19, Short.MAX_VALUE))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
-                .addGap(55, 55, 55)
+                .addGap(25, 25, 25)
                 .addComponent(home_page_button, javax.swing.GroupLayout.PREFERRED_SIZE, 66, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(39, 39, 39)
+                .addGap(29, 29, 29)
                 .addComponent(edit_profile_button, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(42, 42, 42)
+                .addGap(34, 34, 34)
                 .addComponent(change_password_button, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(37, 37, 37)
+                .addGap(36, 36, 36)
+                .addComponent(myBookShelf_button, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(41, 41, 41)
+                .addComponent(goToLibrary_button, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(35, 35, 35)
                 .addComponent(logout_button, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(211, Short.MAX_VALUE))
+                .addContainerGap(40, Short.MAX_VALUE))
         );
 
         Parent_panel.setLayout(new java.awt.CardLayout());
@@ -501,9 +664,9 @@ public class UserDashboard extends javax.swing.JFrame {
         jPanel8.setBackground(new java.awt.Color(186, 221, 255));
         jPanel8.setBorder(javax.swing.BorderFactory.createMatteBorder(15, 0, 0, 0, new java.awt.Color(255, 0, 51)));
 
+        returnedNumber.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/adminIcons/return_book_50px.png"))); // NOI18N
         returnedNumber.setFont(new java.awt.Font("Segoe UI", 0, 28)); // NOI18N
         returnedNumber.setForeground(new java.awt.Color(102, 102, 102));
-        returnedNumber.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/adminIcons/return_book_50px.png"))); // NOI18N
 
         javax.swing.GroupLayout jPanel8Layout = new javax.swing.GroupLayout(jPanel8);
         jPanel8.setLayout(jPanel8Layout);
@@ -521,17 +684,17 @@ public class UserDashboard extends javax.swing.JFrame {
                 .addGap(26, 26, 26))
         );
 
+        JLabel.setText("Sách đang mượn");
         JLabel.setBackground(new java.awt.Color(186, 221, 255));
         JLabel.setFont(new java.awt.Font("Segoe UI", 3, 20)); // NOI18N
-        JLabel.setText("Số sách trong hạn");
 
         jPanel9.setBackground(new java.awt.Color(186, 221, 255));
         jPanel9.setBorder(javax.swing.BorderFactory.createMatteBorder(15, 0, 0, 0, new java.awt.Color(255, 0, 51)));
 
-        borrowedNumber.setFont(new java.awt.Font("Segoe UI", 0, 28)); // NOI18N
-        borrowedNumber.setForeground(new java.awt.Color(102, 102, 102));
         borrowedNumber.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         borrowedNumber.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/adminIcons/book_50px.png"))); // NOI18N
+        borrowedNumber.setFont(new java.awt.Font("Segoe UI", 0, 28)); // NOI18N
+        borrowedNumber.setForeground(new java.awt.Color(102, 102, 102));
 
         javax.swing.GroupLayout jPanel9Layout = new javax.swing.GroupLayout(jPanel9);
         jPanel9.setLayout(jPanel9Layout);
@@ -550,10 +713,10 @@ public class UserDashboard extends javax.swing.JFrame {
         jPanel11.setBackground(new java.awt.Color(186, 221, 255));
         jPanel11.setBorder(javax.swing.BorderFactory.createMatteBorder(15, 0, 0, 0, new java.awt.Color(255, 0, 51)));
 
+        overtimeNumber.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/adminIcons/over_time_50px.png"))); // NOI18N
         overtimeNumber.setBackground(new java.awt.Color(186, 221, 255));
         overtimeNumber.setFont(new java.awt.Font("Segoe UI", 0, 28)); // NOI18N
         overtimeNumber.setForeground(new java.awt.Color(102, 102, 102));
-        overtimeNumber.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/adminIcons/over_time_50px.png"))); // NOI18N
 
         javax.swing.GroupLayout jPanel11Layout = new javax.swing.GroupLayout(jPanel11);
         jPanel11.setLayout(jPanel11Layout);
@@ -572,13 +735,13 @@ public class UserDashboard extends javax.swing.JFrame {
                 .addGap(16, 16, 16))
         );
 
+        j.setText("Sách quá hạn");
         j.setBackground(new java.awt.Color(186, 221, 255));
         j.setFont(new java.awt.Font("Segoe UI", 3, 20)); // NOI18N
-        j.setText("Sách quá hạn");
 
+        Jlabel.setText("Sách đã trả");
         Jlabel.setBackground(new java.awt.Color(186, 221, 255));
         Jlabel.setFont(new java.awt.Font("Segoe UI", 3, 20)); // NOI18N
-        Jlabel.setText("Số sách đã trả");
 
         view_book_jscroll.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -604,33 +767,35 @@ public class UserDashboard extends javax.swing.JFrame {
             }
         });
         view_book_jscroll.setColorFilasBackgound2(new java.awt.Color(255, 255, 255));
+        view_book_jscroll.setRowHeight(50);
+        view_book_jscroll.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jScrollPane1.setViewportView(view_book_jscroll);
 
         jPanel4.setBackground(new java.awt.Color(186, 221, 255));
 
-        icon_member.setForeground(new java.awt.Color(102, 102, 102));
         icon_member.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/adminIcons/member_off_50px.png"))); // NOI18N
+        icon_member.setForeground(new java.awt.Color(102, 102, 102));
 
-        member_infor_label.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
         member_infor_label.setText("Member Information");
+        member_infor_label.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
 
-        jLabel3.setFont(new java.awt.Font("Segoe UI", 2, 14)); // NOI18N
         jLabel3.setText("AccountName :");
+        jLabel3.setFont(new java.awt.Font("Segoe UI", 2, 14)); // NOI18N
 
-        jLabel4.setFont(new java.awt.Font("Segoe UI", 2, 14)); // NOI18N
         jLabel4.setText("ContactNumber :");
+        jLabel4.setFont(new java.awt.Font("Segoe UI", 2, 14)); // NOI18N
 
-        jLabel10.setFont(new java.awt.Font("Segoe UI", 2, 14)); // NOI18N
         jLabel10.setText("Email :");
+        jLabel10.setFont(new java.awt.Font("Segoe UI", 2, 14)); // NOI18N
 
-        account_name.setFont(new java.awt.Font("Segoe UI", 1, 16)); // NOI18N
         account_name.setText("_accountname_");
+        account_name.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
 
-        contact_number.setFont(new java.awt.Font("Segoe UI", 1, 16)); // NOI18N
         contact_number.setText("_contactmnumber_");
+        contact_number.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
 
-        email.setFont(new java.awt.Font("Segoe UI", 1, 16)); // NOI18N
         email.setText("_email_");
+        email.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
@@ -724,8 +889,8 @@ public class UserDashboard extends javax.swing.JFrame {
                                 .addComponent(jPanel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                             .addComponent(jPanel11, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(11, 11, 11)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 443, Short.MAX_VALUE))
+                .addGap(0, 0, 0)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 445, Short.MAX_VALUE))
         );
 
         home_page_panel.add(JPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 30, 880, 640));
@@ -742,48 +907,33 @@ public class UserDashboard extends javax.swing.JFrame {
 
         txtpassword.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         txtpassword.setPlaceholder("Enter Password .....");
-        txtpassword.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtpasswordActionPerformed(evt);
-            }
-        });
 
         txtpassword1.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         txtpassword1.setPlaceholder("Enter New Password");
-        txtpassword1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtpassword1ActionPerformed(evt);
-            }
-        });
 
         txtpassword2.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         txtpassword2.setPlaceholder("Confirm Password");
-        txtpassword2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtpassword2ActionPerformed(evt);
-            }
-        });
 
-        jLabel14.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel14.setText("Current password");
+        jLabel14.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
 
+        jLabel15.setText("* ");
         jLabel15.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel15.setForeground(new java.awt.Color(223, 25, 25));
-        jLabel15.setText("* ");
 
-        jLabel16.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel16.setText("Confirm password");
+        jLabel16.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
 
+        jLabel17.setText("* ");
         jLabel17.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel17.setForeground(new java.awt.Color(223, 25, 25));
-        jLabel17.setText("* ");
 
-        jLabel18.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel18.setText("New password");
+        jLabel18.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
 
+        jLabel19.setText("* ");
         jLabel19.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel19.setForeground(new java.awt.Color(223, 25, 25));
-        jLabel19.setText("* ");
 
         Submit_button.setBackground(new java.awt.Color(127, 186, 0));
         Submit_button.setFont(new java.awt.Font("Segoe UI", 1, 22)); // NOI18N
@@ -796,12 +946,12 @@ public class UserDashboard extends javax.swing.JFrame {
             }
         });
 
-        jLabel28.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
         jLabel28.setText("Change password");
+        jLabel28.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
 
+        jLabel29.setText("Update password for enhanced account security");
         jLabel29.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
         jLabel29.setForeground(new java.awt.Color(121, 121, 121));
-        jLabel29.setText("Update password for enhanced account security");
 
         jLabel30.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/adminIcons/reset_pass_50px.png"))); // NOI18N
 
@@ -940,14 +1090,14 @@ public class UserDashboard extends javax.swing.JFrame {
 
         jPanel12.setBackground(new java.awt.Color(255, 255, 255));
 
-        jLabel9.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel9.setText("AccountName ( Can't change ) : ");
+        jLabel9.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
 
-        jLabel11.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel11.setText("ContactNumber : ");
+        jLabel11.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
 
-        jLabel12.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel12.setText("Email : ");
+        jLabel12.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
 
         editprofile_saveButton.setBackground(new java.awt.Color(127, 186, 0));
         editprofile_saveButton.setFont(new java.awt.Font("Segoe UI", 3, 24)); // NOI18N
@@ -960,8 +1110,8 @@ public class UserDashboard extends javax.swing.JFrame {
             }
         });
 
-        jLabel13.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
         jLabel13.setText("Edit profile");
+        jLabel13.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
 
         jLabel23.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/adminIcons/email_50px.png"))); // NOI18N
 
@@ -971,9 +1121,9 @@ public class UserDashboard extends javax.swing.JFrame {
 
         jLabel8.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/SplashIcon/edit_pro5_64px.png"))); // NOI18N
 
+        jLabel26.setText("Update contactnumber and email for better security");
         jLabel26.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
         jLabel26.setForeground(new java.awt.Color(121, 121, 121));
-        jLabel26.setText("Update contactnumber and email for better security");
 
         contact_number_label.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         contact_number_label.setPlaceholder("Contact Number . . .");
@@ -984,8 +1134,8 @@ public class UserDashboard extends javax.swing.JFrame {
         jPanel10.setBackground(new java.awt.Color(255, 255, 255));
         jPanel10.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
-        account_name_label.setFont(new java.awt.Font("Segoe UI", 3, 18)); // NOI18N
         account_name_label.setText("_AccountName_");
+        account_name_label.setFont(new java.awt.Font("Segoe UI", 3, 18)); // NOI18N
 
         javax.swing.GroupLayout jPanel10Layout = new javax.swing.GroupLayout(jPanel10);
         jPanel10.setLayout(jPanel10Layout);
@@ -994,7 +1144,7 @@ public class UserDashboard extends javax.swing.JFrame {
             .addGroup(jPanel10Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(account_name_label)
-                .addContainerGap(252, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel10Layout.setVerticalGroup(
             jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1005,7 +1155,6 @@ public class UserDashboard extends javax.swing.JFrame {
         );
 
         jLabel35.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/SplashIcon/boyreadingbook_490.png"))); // NOI18N
-        jLabel35.setText("jLabel35");
 
         editprofile_resetButton.setBackground(new java.awt.Color(127, 186, 0));
         editprofile_resetButton.setFont(new java.awt.Font("Segoe UI", 3, 24)); // NOI18N
@@ -1018,6 +1167,10 @@ public class UserDashboard extends javax.swing.JFrame {
                 editprofile_resetButtonActionPerformed(evt);
             }
         });
+
+        jLabel7.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/SplashIcon/girl_120.png"))); // NOI18N
+
+        jLabel21.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/adminIcons/idea_girl_50px.png"))); // NOI18N
 
         javax.swing.GroupLayout jPanel12Layout = new javax.swing.GroupLayout(jPanel12);
         jPanel12.setLayout(jPanel12Layout);
@@ -1032,53 +1185,61 @@ public class UserDashboard extends javax.swing.JFrame {
                 .addGap(18, 18, 18)
                 .addGroup(jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel12Layout.createSequentialGroup()
-                        .addComponent(jLabel8)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel13)
-                            .addComponent(jLabel26)))
-                    .addComponent(jLabel9)
-                    .addComponent(jPanel10, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(jPanel12Layout.createSequentialGroup()
+                                .addComponent(jLabel8)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel13)
+                                    .addComponent(jLabel26)))
+                            .addComponent(jLabel9))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jLabel7)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel21)
+                        .addGap(155, 155, 155))
                     .addGroup(jPanel12Layout.createSequentialGroup()
-                        .addGroup(jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addGroup(jPanel12Layout.createSequentialGroup()
-                                .addGroup(jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(email_label, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addGroup(jPanel12Layout.createSequentialGroup()
-                                        .addGroup(jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addComponent(jLabel12)
-                                            .addComponent(jLabel11)
-                                            .addComponent(contact_number_label, javax.swing.GroupLayout.PREFERRED_SIZE, 393, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                        .addGap(4, 4, 4)))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED))
-                            .addGroup(jPanel12Layout.createSequentialGroup()
-                                .addGap(29, 29, 29)
-                                .addComponent(editprofile_saveButton, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(editprofile_resetButton, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(48, 48, 48)))
-                        .addComponent(jLabel35)))
-                .addContainerGap(47, Short.MAX_VALUE))
+                        .addGroup(jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jPanel10, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addGroup(jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(jPanel12Layout.createSequentialGroup()
+                                    .addGap(19, 19, 19)
+                                    .addComponent(editprofile_saveButton, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGap(48, 48, 48)
+                                    .addComponent(editprofile_resetButton, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGroup(jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                    .addComponent(email_label, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(jLabel12, javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel11, javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(contact_number_label, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 393, Short.MAX_VALUE))))
+                        .addGap(16, 16, 16)
+                        .addComponent(jLabel35)
+                        .addGap(12, 12, 12))))
         );
         jPanel12Layout.setVerticalGroup(
             jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel12Layout.createSequentialGroup()
-                .addGap(100, 100, 100)
+                .addGap(18, 18, 18)
                 .addGroup(jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(jPanel12Layout.createSequentialGroup()
-                        .addComponent(jLabel13, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel26))
-                    .addComponent(jLabel8))
+                        .addGroup(jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(jPanel12Layout.createSequentialGroup()
+                                .addComponent(jLabel13, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel26))
+                            .addComponent(jLabel8))
+                        .addGap(46, 46, 46)
+                        .addComponent(jLabel9))
+                    .addGroup(jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jLabel21)
+                        .addComponent(jLabel7)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jLabel24, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel10, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel12Layout.createSequentialGroup()
-                        .addGap(46, 46, 46)
-                        .addComponent(jLabel9)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jLabel24, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jPanel10, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1086,19 +1247,19 @@ public class UserDashboard extends javax.swing.JFrame {
                             .addComponent(jLabel25))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jLabel12)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jLabel23)
-                            .addComponent(email_label, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(48, 48, 48)
-                        .addGroup(jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(editprofile_saveButton, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(editprofile_resetButton, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(0, 72, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel12Layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jLabel35)))
-                .addContainerGap())
+                        .addGroup(jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel12Layout.createSequentialGroup()
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(jLabel23)
+                                    .addComponent(email_label, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addGroup(jPanel12Layout.createSequentialGroup()
+                                .addGap(97, 97, 97)
+                                .addGroup(jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(editprofile_resetButton, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(editprofile_saveButton, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                    .addComponent(jLabel35))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout editprofile_panelLayout = new javax.swing.GroupLayout(editprofile_panel);
@@ -1116,6 +1277,220 @@ public class UserDashboard extends javax.swing.JFrame {
         );
 
         Parent_panel.add(editprofile_panel, "card4");
+
+        searchbook_panel.setBackground(new java.awt.Color(186, 221, 255));
+
+        view_book_search_jscroll.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "BookID", "BookName", "NgayMuon", "NgayTra", "TrangThai"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        view_book_search_jscroll.setColorFilasBackgound2(new java.awt.Color(255, 204, 153));
+        view_book_search_jscroll.setRowHeight(50);
+        view_book_search_jscroll.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        view_search_book_jscroll.setViewportView(view_book_search_jscroll);
+
+        search_panel.setBackground(new java.awt.Color(255, 255, 255));
+
+        tim_kiem_panel.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
+        tim_kiem_panel.setText("Search");
+
+        book_id_label.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
+        book_id_label.setText("Book_ID :");
+
+        book_name_label.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
+        book_name_label.setText("Book_Name :");
+
+        trang_thai_panel.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
+        trang_thai_panel.setText("TrangThai :");
+
+        id_text.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 112, 192), 2));
+        id_text.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        id_text.setPlaceholder("ID . . .");
+
+        bookName_text.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 112, 192), 2));
+        bookName_text.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        bookName_text.setPlaceholder("Name . . .");
+
+        ngayMuon_label.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
+        ngayMuon_label.setText("IssueDate :");
+
+        ngayTra_label.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
+        ngayTra_label.setText("DueDate :");
+
+        ngayTra_date.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+
+        ngayMuon_date.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+
+        timKiem_button.setBackground(new java.awt.Color(0, 112, 192));
+        timKiem_button.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        timKiem_button.setForeground(new java.awt.Color(255, 255, 255));
+        timKiem_button.setText("Search");
+        timKiem_button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                timKiem_buttonActionPerformed(evt);
+            }
+        });
+
+        traSach_button.setBackground(new java.awt.Color(0, 112, 192));
+        traSach_button.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        traSach_button.setForeground(new java.awt.Color(255, 255, 255));
+        traSach_button.setText("Return ");
+        traSach_button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                traSach_buttonActionPerformed(evt);
+            }
+        });
+
+        trangThai_cbbox.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        trangThai_cbbox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "All", "Borrowed", "Returned", "OverTime", " " }));
+        trangThai_cbbox.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 112, 192), 2));
+
+        toanBo_button.setBackground(new java.awt.Color(0, 112, 192));
+        toanBo_button.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        toanBo_button.setForeground(new java.awt.Color(255, 255, 255));
+        toanBo_button.setText("All books");
+        toanBo_button.setToolTipText("");
+        toanBo_button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                toanBo_buttonActionPerformed(evt);
+            }
+        });
+
+        jLabel36.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/adminIcons/search_50px.png"))); // NOI18N
+
+        jLabel22.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/adminIcons/book_search_50px.png"))); // NOI18N
+
+        javax.swing.GroupLayout search_panelLayout = new javax.swing.GroupLayout(search_panel);
+        search_panel.setLayout(search_panelLayout);
+        search_panelLayout.setHorizontalGroup(
+            search_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(search_panelLayout.createSequentialGroup()
+                .addGroup(search_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(search_panelLayout.createSequentialGroup()
+                        .addGap(17, 17, 17)
+                        .addComponent(jLabel22)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel36))
+                    .addGroup(search_panelLayout.createSequentialGroup()
+                        .addGap(25, 25, 25)
+                        .addComponent(tim_kiem_panel, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(13, 13, 13)
+                .addGroup(search_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(book_id_label, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(trang_thai_panel, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(book_name_label, javax.swing.GroupLayout.Alignment.TRAILING))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(search_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(search_panelLayout.createSequentialGroup()
+                        .addGroup(search_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(bookName_text, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(trangThai_cbbox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGroup(search_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(search_panelLayout.createSequentialGroup()
+                                .addGap(42, 42, 42)
+                                .addComponent(ngayTra_label)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(ngayTra_date, javax.swing.GroupLayout.PREFERRED_SIZE, 252, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addGroup(search_panelLayout.createSequentialGroup()
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(toanBo_button, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(timKiem_button, javax.swing.GroupLayout.PREFERRED_SIZE, 96, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(traSach_button, javax.swing.GroupLayout.PREFERRED_SIZE, 109, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, search_panelLayout.createSequentialGroup()
+                        .addComponent(id_text, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(35, 35, 35)
+                        .addComponent(ngayMuon_label)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(ngayMuon_date, javax.swing.GroupLayout.PREFERRED_SIZE, 252, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
+        );
+        search_panelLayout.setVerticalGroup(
+            search_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, search_panelLayout.createSequentialGroup()
+                .addGroup(search_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(search_panelLayout.createSequentialGroup()
+                        .addGroup(search_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(search_panelLayout.createSequentialGroup()
+                                .addGap(24, 24, 24)
+                                .addGroup(search_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(book_id_label)
+                                    .addComponent(id_text, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addGroup(search_panelLayout.createSequentialGroup()
+                                .addGap(21, 21, 21)
+                                .addComponent(tim_kiem_panel)))
+                        .addGroup(search_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(search_panelLayout.createSequentialGroup()
+                                .addGap(18, 65, Short.MAX_VALUE)
+                                .addComponent(jLabel22))
+                            .addGroup(search_panelLayout.createSequentialGroup()
+                                .addGroup(search_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(search_panelLayout.createSequentialGroup()
+                                        .addGap(27, 27, 27)
+                                        .addComponent(jLabel36))
+                                    .addGroup(search_panelLayout.createSequentialGroup()
+                                        .addGap(20, 20, 20)
+                                        .addGroup(search_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                            .addComponent(bookName_text, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addComponent(book_name_label))))
+                                .addGap(0, 0, Short.MAX_VALUE))))
+                    .addGroup(search_panelLayout.createSequentialGroup()
+                        .addGap(24, 24, 24)
+                        .addGroup(search_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(ngayMuon_date, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(ngayMuon_label))
+                        .addGap(33, 33, 33)
+                        .addGroup(search_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(ngayTra_date, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(ngayTra_label))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(search_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(trangThai_cbbox, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(trang_thai_panel)
+                            .addComponent(toanBo_button, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(timKiem_button, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(traSach_button, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addGap(24, 24, 24))
+        );
+
+        javax.swing.GroupLayout searchbook_panelLayout = new javax.swing.GroupLayout(searchbook_panel);
+        searchbook_panel.setLayout(searchbook_panelLayout);
+        searchbook_panelLayout.setHorizontalGroup(
+            searchbook_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(view_search_book_jscroll)
+            .addComponent(search_panel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+        searchbook_panelLayout.setVerticalGroup(
+            searchbook_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, searchbook_panelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(search_panel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(view_search_book_jscroll, javax.swing.GroupLayout.PREFERRED_SIZE, 448, javax.swing.GroupLayout.PREFERRED_SIZE))
+        );
+
+        Parent_panel.add(searchbook_panel, "card5");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -1200,18 +1575,6 @@ public class UserDashboard extends javax.swing.JFrame {
         change_password_button.setBackground(new Color(255,0,51));
     }//GEN-LAST:event_change_password_buttonActionPerformed
 
-    private void txtpasswordActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtpasswordActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtpasswordActionPerformed
-
-    private void txtpassword1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtpassword1ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtpassword1ActionPerformed
-
-    private void txtpassword2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtpassword2ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtpassword2ActionPerformed
-
     private void Submit_buttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Submit_buttonActionPerformed
         // TODO add your handling code here:
         String curPass = txtpassword.getText();
@@ -1279,6 +1642,46 @@ public class UserDashboard extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_editprofile_resetButtonActionPerformed
 
+    private void timKiem_buttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_timKiem_buttonActionPerformed
+        // TODO add your handling code here:
+        if (!Check_searchDate()) {
+            JOptionPane.showMessageDialog(this, "Error in Date");
+        } else {
+            Searchbook_panelLoad();
+        }
+    }//GEN-LAST:event_timKiem_buttonActionPerformed
+
+    private void traSach_buttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_traSach_buttonActionPerformed
+        // TODO add your handling code here:
+        if(!returnBook()){
+            JOptionPane.showMessageDialog(this,"Index = -1 OR this book is returned");
+        }
+        else JOptionPane.showMessageDialog(this,"Return successfully");
+        Searchbook_panelLoad();
+    }//GEN-LAST:event_traSach_buttonActionPerformed
+
+    private void toanBo_buttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_toanBo_buttonActionPerformed
+        // TODO add your handling code here:
+        SearchBook_greetingLoad();
+        Searchbook_panelLoad();
+    }//GEN-LAST:event_toanBo_buttonActionPerformed
+
+    private void myBookShelf_buttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_myBookShelf_buttonActionPerformed
+        // TODO add your handling code here:
+        Parent_panel.removeAll();
+        Parent_panel.add(searchbook_panel);
+        Parent_panel.repaint();
+        Parent_panel.revalidate();
+        SearchBook_greetingLoad();
+        Searchbook_panelLoad();
+        TurnOffButtons();
+        myBookShelf_button.setBackground(new Color(255,0,51));
+    }//GEN-LAST:event_myBookShelf_buttonActionPerformed
+
+    private void goToLibrary_buttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goToLibrary_buttonActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_goToLibrary_buttonActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -1323,6 +1726,9 @@ public class UserDashboard extends javax.swing.JFrame {
     private javax.swing.JButton Submit_button;
     private javax.swing.JLabel account_name;
     private javax.swing.JLabel account_name_label;
+    private app.bolivia.swing.JCTextField bookName_text;
+    private javax.swing.JLabel book_id_label;
+    private javax.swing.JLabel book_name_label;
     private javax.swing.JLabel borrowedNumber;
     private javax.swing.JButton change_password_button;
     private javax.swing.JPanel changepassword_panel;
@@ -1334,9 +1740,11 @@ public class UserDashboard extends javax.swing.JFrame {
     private javax.swing.JButton editprofile_saveButton;
     private javax.swing.JLabel email;
     private app.bolivia.swing.JCTextField email_label;
+    private javax.swing.JButton goToLibrary_button;
     private javax.swing.JButton home_page_button;
     private javax.swing.JPanel home_page_panel;
     private javax.swing.JLabel icon_member;
+    private app.bolivia.swing.JCTextField id_text;
     private javax.swing.JLabel j;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
@@ -1351,6 +1759,8 @@ public class UserDashboard extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel20;
+    private javax.swing.JLabel jLabel21;
+    private javax.swing.JLabel jLabel22;
     private javax.swing.JLabel jLabel23;
     private javax.swing.JLabel jLabel24;
     private javax.swing.JLabel jLabel25;
@@ -1365,9 +1775,11 @@ public class UserDashboard extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel33;
     private javax.swing.JLabel jLabel34;
     private javax.swing.JLabel jLabel35;
+    private javax.swing.JLabel jLabel36;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
@@ -1384,12 +1796,27 @@ public class UserDashboard extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JButton logout_button;
     private javax.swing.JLabel member_infor_label;
+    private javax.swing.JButton myBookShelf_button;
+    private com.github.lgooddatepicker.components.DatePicker ngayMuon_date;
+    private javax.swing.JLabel ngayMuon_label;
+    private com.github.lgooddatepicker.components.DatePicker ngayTra_date;
+    private javax.swing.JLabel ngayTra_label;
     private javax.swing.JLabel overtimeNumber;
     private javax.swing.JLabel returnedNumber;
+    private javax.swing.JPanel search_panel;
+    private javax.swing.JPanel searchbook_panel;
+    private javax.swing.JButton timKiem_button;
+    private javax.swing.JLabel tim_kiem_panel;
+    private javax.swing.JButton toanBo_button;
+    private javax.swing.JButton traSach_button;
+    private javax.swing.JComboBox<String> trangThai_cbbox;
+    private javax.swing.JLabel trang_thai_panel;
     private app.bolivia.swing.JCTextField txtpassword;
     private app.bolivia.swing.JCTextField txtpassword1;
     private app.bolivia.swing.JCTextField txtpassword2;
     private javax.swing.JLabel user_name;
     private rojeru_san.complementos.RSTableMetro view_book_jscroll;
+    private rojeru_san.complementos.RSTableMetro view_book_search_jscroll;
+    private javax.swing.JScrollPane view_search_book_jscroll;
     // End of variables declaration//GEN-END:variables
 }
