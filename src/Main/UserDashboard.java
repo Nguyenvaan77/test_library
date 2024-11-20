@@ -504,6 +504,7 @@ public class UserDashboard extends javax.swing.JFrame {
         jLabel22 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setUndecorated(true);
 
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));
 
@@ -599,10 +600,10 @@ public class UserDashboard extends javax.swing.JFrame {
             }
         });
 
-        myBookShelf_button.setBackground(new java.awt.Color(255, 219, 150));
-        myBookShelf_button.setFont(new java.awt.Font("Yu Gothic UI", 1, 18)); // NOI18N
         myBookShelf_button.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/adminIcons/book_shelf_50px.png"))); // NOI18N
         myBookShelf_button.setText("My BookShelf");
+        myBookShelf_button.setBackground(new java.awt.Color(255, 219, 150));
+        myBookShelf_button.setFont(new java.awt.Font("Yu Gothic UI", 1, 18)); // NOI18N
         myBookShelf_button.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         myBookShelf_button.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -610,10 +611,10 @@ public class UserDashboard extends javax.swing.JFrame {
             }
         });
 
-        goToLibrary_button.setBackground(new java.awt.Color(255, 219, 150));
-        goToLibrary_button.setFont(new java.awt.Font("Yu Gothic UI", 1, 18)); // NOI18N
         goToLibrary_button.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/adminIcons/library_2_50px.png"))); // NOI18N
         goToLibrary_button.setText("Go to library");
+        goToLibrary_button.setBackground(new java.awt.Color(255, 219, 150));
+        goToLibrary_button.setFont(new java.awt.Font("Yu Gothic UI", 1, 18)); // NOI18N
         goToLibrary_button.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         goToLibrary_button.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -666,7 +667,6 @@ public class UserDashboard extends javax.swing.JFrame {
 
         returnedNumber.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/adminIcons/return_book_50px.png"))); // NOI18N
         returnedNumber.setFont(new java.awt.Font("Segoe UI", 0, 28)); // NOI18N
-        returnedNumber.setForeground(new java.awt.Color(102, 102, 102));
 
         javax.swing.GroupLayout jPanel8Layout = new javax.swing.GroupLayout(jPanel8);
         jPanel8.setLayout(jPanel8Layout);
@@ -694,7 +694,6 @@ public class UserDashboard extends javax.swing.JFrame {
         borrowedNumber.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         borrowedNumber.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/adminIcons/book_50px.png"))); // NOI18N
         borrowedNumber.setFont(new java.awt.Font("Segoe UI", 0, 28)); // NOI18N
-        borrowedNumber.setForeground(new java.awt.Color(102, 102, 102));
 
         javax.swing.GroupLayout jPanel9Layout = new javax.swing.GroupLayout(jPanel9);
         jPanel9.setLayout(jPanel9Layout);
@@ -716,7 +715,6 @@ public class UserDashboard extends javax.swing.JFrame {
         overtimeNumber.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/adminIcons/over_time_50px.png"))); // NOI18N
         overtimeNumber.setBackground(new java.awt.Color(186, 221, 255));
         overtimeNumber.setFont(new java.awt.Font("Segoe UI", 0, 28)); // NOI18N
-        overtimeNumber.setForeground(new java.awt.Color(102, 102, 102));
 
         javax.swing.GroupLayout jPanel11Layout = new javax.swing.GroupLayout(jPanel11);
         jPanel11.setLayout(jPanel11Layout);
@@ -1308,19 +1306,19 @@ public class UserDashboard extends javax.swing.JFrame {
         view_book_search_jscroll.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         view_search_book_jscroll.setViewportView(view_book_search_jscroll);
 
-        search_panel.setBackground(new java.awt.Color(255, 255, 255));
+        search_panel.setBackground(new java.awt.Color(186, 221, 255));
 
-        tim_kiem_panel.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
         tim_kiem_panel.setText("Search");
+        tim_kiem_panel.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
 
-        book_id_label.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
         book_id_label.setText("Book_ID :");
+        book_id_label.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
 
-        book_name_label.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
         book_name_label.setText("Book_Name :");
+        book_name_label.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
 
-        trang_thai_panel.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
         trang_thai_panel.setText("TrangThai :");
+        trang_thai_panel.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
 
         id_text.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 112, 192), 2));
         id_text.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
@@ -1330,44 +1328,44 @@ public class UserDashboard extends javax.swing.JFrame {
         bookName_text.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         bookName_text.setPlaceholder("Name . . .");
 
-        ngayMuon_label.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
         ngayMuon_label.setText("IssueDate :");
+        ngayMuon_label.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
 
-        ngayTra_label.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
         ngayTra_label.setText("DueDate :");
+        ngayTra_label.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
 
         ngayTra_date.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
 
         ngayMuon_date.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
 
+        timKiem_button.setText("Search");
         timKiem_button.setBackground(new java.awt.Color(0, 112, 192));
         timKiem_button.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         timKiem_button.setForeground(new java.awt.Color(255, 255, 255));
-        timKiem_button.setText("Search");
         timKiem_button.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 timKiem_buttonActionPerformed(evt);
             }
         });
 
+        traSach_button.setText("Return ");
         traSach_button.setBackground(new java.awt.Color(0, 112, 192));
         traSach_button.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         traSach_button.setForeground(new java.awt.Color(255, 255, 255));
-        traSach_button.setText("Return ");
         traSach_button.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 traSach_buttonActionPerformed(evt);
             }
         });
 
-        trangThai_cbbox.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         trangThai_cbbox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "All", "Borrowed", "Returned", "OverTime", " " }));
         trangThai_cbbox.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 112, 192), 2));
+        trangThai_cbbox.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
 
+        toanBo_button.setText("All books");
         toanBo_button.setBackground(new java.awt.Color(0, 112, 192));
         toanBo_button.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         toanBo_button.setForeground(new java.awt.Color(255, 255, 255));
-        toanBo_button.setText("All books");
         toanBo_button.setToolTipText("");
         toanBo_button.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1529,6 +1527,7 @@ public class UserDashboard extends javax.swing.JFrame {
         );
 
         pack();
+        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     private void jLabel6MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel6MouseClicked

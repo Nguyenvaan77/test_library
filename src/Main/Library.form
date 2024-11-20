@@ -75,7 +75,7 @@
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" alignment="1" attributes="0">
                       <Group type="103" groupAlignment="1" attributes="0">
-                          <Component id="view_library_book_jscroll" alignment="0" max="32767" attributes="0"/>
+                          <Component id="Lib_view_book_jscrollPane" alignment="0" max="32767" attributes="0"/>
                           <Component id="library_panel" max="32767" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
@@ -87,21 +87,21 @@
                   <Group type="102" alignment="1" attributes="0">
                       <Component id="library_panel" max="32767" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="view_library_book_jscroll" min="-2" pref="401" max="-2" attributes="0"/>
+                      <Component id="Lib_view_book_jscrollPane" min="-2" pref="401" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
           </Layout>
           <SubComponents>
-            <Container class="javax.swing.JScrollPane" name="view_library_book_jscroll">
+            <Container class="javax.swing.JScrollPane" name="Lib_view_book_jscrollPane">
               <AuxValues>
                 <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
               </AuxValues>
 
               <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
               <SubComponents>
-                <Component class="rojeru_san.complementos.RSTableMetro" name="view_book_library_jscroll">
+                <Component class="rojeru_san.complementos.RSTableMetro" name="Lib_view_book_ljscroll">
                   <Properties>
                     <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.editors2.TableModelEditor">
                       <Table columnCount="6" rowCount="0">
@@ -123,7 +123,7 @@
                     </Property>
                   </Properties>
                   <Events>
-                    <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="view_book_library_jscrollFocusGained"/>
+                    <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="Lib_view_book_ljscrollFocusGained"/>
                   </Events>
                 </Component>
               </SubComponents>
@@ -136,42 +136,42 @@
                       <Group type="102" alignment="0" attributes="0">
                           <EmptySpace min="-2" pref="28" max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="1" attributes="0">
-                              <Component id="book_name_label_LIB" alignment="1" min="-2" max="-2" attributes="0"/>
-                              <Component id="cate_label_LIB" alignment="1" min="-2" max="-2" attributes="0"/>
+                              <Component id="Lib_book_name_label" alignment="1" min="-2" max="-2" attributes="0"/>
+                              <Component id="Lib_cate_label" alignment="1" min="-2" max="-2" attributes="0"/>
                               <Group type="102" alignment="1" attributes="0">
                                   <Component id="library_label" min="-2" max="-2" attributes="0"/>
                                   <EmptySpace min="-2" pref="45" max="-2" attributes="0"/>
-                                  <Component id="book_id_label_LIB" min="-2" max="-2" attributes="0"/>
+                                  <Component id="Lib_book_id_label" min="-2" max="-2" attributes="0"/>
                               </Group>
                           </Group>
                           <EmptySpace max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="0" attributes="0">
-                              <Component id="id_text_LIB" min="-2" max="-2" attributes="0"/>
-                              <Component id="bookName_text_LIB" min="-2" max="-2" attributes="0"/>
-                              <Component id="cate_text" min="-2" max="-2" attributes="0"/>
+                              <Component id="Lib_id_text" min="-2" max="-2" attributes="0"/>
+                              <Component id="Lib_bookName_text" min="-2" max="-2" attributes="0"/>
+                              <Component id="Lib_cate_text" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace pref="57" max="32767" attributes="0"/>
                           <Group type="103" groupAlignment="0" max="-2" attributes="0">
                               <Group type="102" alignment="0" attributes="0">
                                   <Group type="103" groupAlignment="1" attributes="0">
-                                      <Component id="publisher_label_LIB" alignment="1" min="-2" max="-2" attributes="0"/>
-                                      <Component id="quantity_label_LIB" alignment="1" min="-2" max="-2" attributes="0"/>
-                                      <Component id="author_label_LIB" alignment="1" min="-2" max="-2" attributes="0"/>
+                                      <Component id="Lib_publisher_label" alignment="1" min="-2" max="-2" attributes="0"/>
+                                      <Component id="Lib_quantity_label" alignment="1" min="-2" max="-2" attributes="0"/>
+                                      <Component id="Lib_author_label" alignment="1" min="-2" max="-2" attributes="0"/>
                                   </Group>
                                   <EmptySpace max="-2" attributes="0"/>
                                   <Group type="103" groupAlignment="0" attributes="0">
-                                      <Component id="author_text_LIB" alignment="0" min="-2" max="-2" attributes="0"/>
-                                      <Component id="publisher_text_LIB" alignment="0" min="-2" max="-2" attributes="0"/>
-                                      <Component id="quantity_consttext_LIB" min="-2" max="-2" attributes="0"/>
+                                      <Component id="Lib_author_text" alignment="0" min="-2" max="-2" attributes="0"/>
+                                      <Component id="Lib_publisher_text" alignment="0" min="-2" max="-2" attributes="0"/>
+                                      <Component id="Lib_quantity_consttext" min="-2" max="-2" attributes="0"/>
                                   </Group>
                                   <EmptySpace min="-2" pref="41" max="-2" attributes="0"/>
                               </Group>
                               <Group type="102" alignment="0" attributes="0">
-                                  <Component id="toanBo_button_LIB" min="-2" max="-2" attributes="0"/>
+                                  <Component id="Lib_toanBo_button" min="-2" max="-2" attributes="0"/>
                                   <EmptySpace max="32767" attributes="0"/>
-                                  <Component id="timKiem_button_LIB" min="-2" max="-2" attributes="0"/>
+                                  <Component id="Lib_timKiem_button" min="-2" max="-2" attributes="0"/>
                                   <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                                  <Component id="muonSach_button_LIB" min="-2" max="-2" attributes="0"/>
+                                  <Component id="Lib_muonSach_button" min="-2" max="-2" attributes="0"/>
                                   <EmptySpace min="-2" pref="4" max="-2" attributes="0"/>
                               </Group>
                           </Group>
@@ -183,53 +183,54 @@
                       <Group type="102" alignment="0" attributes="0">
                           <EmptySpace min="-2" pref="20" max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="1" attributes="0">
-                              <Group type="102" alignment="1" attributes="0">
-                                  <Group type="103" groupAlignment="3" attributes="0">
-                                      <Component id="library_label" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Group type="102" alignment="0" attributes="0">
+                                  <Group type="103" groupAlignment="0" attributes="0">
                                       <Group type="102" alignment="0" attributes="0">
                                           <EmptySpace min="-2" pref="1" max="-2" attributes="0"/>
                                           <Group type="103" groupAlignment="3" attributes="0">
-                                              <Component id="id_text_LIB" alignment="3" min="-2" max="-2" attributes="0"/>
-                                              <Component id="book_id_label_LIB" alignment="3" min="-2" max="-2" attributes="0"/>
+                                              <Component id="Lib_id_text" alignment="3" min="-2" max="-2" attributes="0"/>
+                                              <Component id="Lib_book_id_label" alignment="3" min="-2" max="-2" attributes="0"/>
                                           </Group>
                                       </Group>
+                                      <Component id="library_label" min="-2" max="-2" attributes="0"/>
                                   </Group>
                                   <EmptySpace type="separate" max="-2" attributes="0"/>
                                   <Group type="103" groupAlignment="3" attributes="0">
-                                      <Component id="bookName_text_LIB" alignment="3" min="-2" max="-2" attributes="0"/>
-                                      <Component id="book_name_label_LIB" alignment="3" min="-2" max="-2" attributes="0"/>
+                                      <Component id="Lib_bookName_text" alignment="3" min="-2" max="-2" attributes="0"/>
+                                      <Component id="Lib_book_name_label" alignment="3" min="-2" max="-2" attributes="0"/>
                                   </Group>
-                                  <EmptySpace max="32767" attributes="0"/>
                               </Group>
-                              <Group type="102" alignment="1" attributes="0">
+                              <Group type="102" alignment="0" attributes="0">
                                   <Group type="103" groupAlignment="3" attributes="0">
-                                      <Component id="author_text_LIB" alignment="3" min="-2" max="-2" attributes="0"/>
-                                      <Component id="author_label_LIB" alignment="3" min="-2" max="-2" attributes="0"/>
+                                      <Component id="Lib_author_text" alignment="3" min="-2" max="-2" attributes="0"/>
+                                      <Component id="Lib_author_label" alignment="3" min="-2" max="-2" attributes="0"/>
                                   </Group>
                                   <Group type="103" groupAlignment="0" attributes="0">
                                       <Group type="102" attributes="0">
                                           <EmptySpace min="-2" pref="40" max="-2" attributes="0"/>
-                                          <Component id="publisher_label_LIB" min="-2" max="-2" attributes="0"/>
+                                          <Component id="Lib_publisher_label" min="-2" max="-2" attributes="0"/>
                                       </Group>
                                       <Group type="102" attributes="0">
                                           <EmptySpace min="-2" pref="36" max="-2" attributes="0"/>
-                                          <Component id="publisher_text_LIB" min="-2" pref="33" max="-2" attributes="0"/>
+                                          <Component id="Lib_publisher_text" min="-2" pref="33" max="-2" attributes="0"/>
                                       </Group>
                                   </Group>
                                   <EmptySpace min="-2" pref="34" max="-2" attributes="0"/>
                                   <Group type="103" groupAlignment="3" attributes="0">
-                                      <Component id="quantity_label_LIB" alignment="3" min="-2" max="-2" attributes="0"/>
-                                      <Component id="cate_text" alignment="3" min="-2" pref="33" max="-2" attributes="0"/>
-                                      <Component id="cate_label_LIB" alignment="3" min="-2" max="-2" attributes="0"/>
-                                      <Component id="quantity_consttext_LIB" alignment="3" min="-2" pref="33" max="-2" attributes="0"/>
+                                      <Component id="Lib_quantity_label" alignment="3" min="-2" max="-2" attributes="0"/>
+                                      <Component id="Lib_cate_text" alignment="3" min="-2" pref="33" max="-2" attributes="0"/>
+                                      <Component id="Lib_cate_label" alignment="3" min="-2" max="-2" attributes="0"/>
+                                      <Component id="Lib_quantity_consttext" alignment="3" min="-2" pref="33" max="-2" attributes="0"/>
                                   </Group>
-                                  <EmptySpace pref="22" max="32767" attributes="0"/>
                               </Group>
                           </Group>
-                          <Group type="103" groupAlignment="3" attributes="0">
-                              <Component id="toanBo_button_LIB" alignment="0" min="-2" pref="31" max="-2" attributes="0"/>
-                              <Component id="muonSach_button_LIB" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="timKiem_button_LIB" alignment="3" min="-2" pref="31" max="-2" attributes="0"/>
+                          <EmptySpace max="32767" attributes="0"/>
+                          <Group type="103" groupAlignment="0" attributes="0">
+                              <Component id="Lib_toanBo_button" alignment="0" min="-2" pref="31" max="-2" attributes="0"/>
+                              <Group type="103" groupAlignment="3" attributes="0">
+                                  <Component id="Lib_muonSach_button" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="Lib_timKiem_button" alignment="3" min="-2" pref="31" max="-2" attributes="0"/>
+                              </Group>
                           </Group>
                           <EmptySpace min="-2" pref="15" max="-2" attributes="0"/>
                       </Group>
@@ -239,37 +240,37 @@
               <SubComponents>
                 <Component class="javax.swing.JLabel" name="library_label">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="Library"/>
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                       <Font name="Segoe UI" size="36" style="1"/>
                     </Property>
+                    <Property name="text" type="java.lang.String" value="Library"/>
                   </Properties>
                 </Component>
-                <Component class="javax.swing.JLabel" name="book_id_label_LIB">
+                <Component class="javax.swing.JLabel" name="Lib_book_id_label">
                   <Properties>
+                    <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                      <Font name="Segoe UI" size="18" style="2"/>
+                    </Property>
                     <Property name="text" type="java.lang.String" value="Book_ID :"/>
+                  </Properties>
+                </Component>
+                <Component class="javax.swing.JLabel" name="Lib_book_name_label">
+                  <Properties>
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                       <Font name="Segoe UI" size="18" style="2"/>
                     </Property>
-                  </Properties>
-                </Component>
-                <Component class="javax.swing.JLabel" name="book_name_label_LIB">
-                  <Properties>
                     <Property name="text" type="java.lang.String" value="Book_Name :"/>
-                    <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                      <Font name="Segoe UI" size="18" style="2"/>
-                    </Property>
                   </Properties>
                 </Component>
-                <Component class="javax.swing.JLabel" name="cate_label_LIB">
+                <Component class="javax.swing.JLabel" name="Lib_cate_label">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="Category_ID :"/>
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                       <Font name="Segoe UI" size="18" style="2"/>
                     </Property>
+                    <Property name="text" type="java.lang.String" value="Category_ID :"/>
                   </Properties>
                 </Component>
-                <Component class="app.bolivia.swing.JCTextField" name="id_text_LIB">
+                <Component class="app.bolivia.swing.JCTextField" name="Lib_id_text">
                   <Properties>
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                       <Font name="Segoe UI" size="18" style="0"/>
@@ -277,7 +278,7 @@
                     <Property name="placeholder" type="java.lang.String" value="ID . . ."/>
                   </Properties>
                 </Component>
-                <Component class="app.bolivia.swing.JCTextField" name="bookName_text_LIB">
+                <Component class="app.bolivia.swing.JCTextField" name="Lib_bookName_text">
                   <Properties>
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                       <Font name="Segoe UI" size="18" style="0"/>
@@ -285,30 +286,30 @@
                     <Property name="placeholder" type="java.lang.String" value="Name . . ."/>
                   </Properties>
                 </Component>
-                <Component class="javax.swing.JButton" name="timKiem_button_LIB">
+                <Component class="javax.swing.JButton" name="Lib_timKiem_button">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="T&#xec;m ki&#x1ebf;m"/>
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                       <Font name="Segoe UI" size="18" style="0"/>
                     </Property>
+                    <Property name="text" type="java.lang.String" value="T&#xec;m ki&#x1ebf;m"/>
                   </Properties>
                   <Events>
-                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="timKiem_button_LIBActionPerformed"/>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="Lib_timKiem_buttonActionPerformed"/>
                   </Events>
                 </Component>
-                <Component class="javax.swing.JButton" name="toanBo_button_LIB">
+                <Component class="javax.swing.JButton" name="Lib_toanBo_button">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="To&#xe0;n b&#x1ed9;"/>
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                       <Font name="Segoe UI" size="18" style="0"/>
                     </Property>
+                    <Property name="text" type="java.lang.String" value="To&#xe0;n b&#x1ed9;"/>
                     <Property name="toolTipText" type="java.lang.String" value=""/>
                   </Properties>
                   <Events>
-                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="toanBo_button_LIBActionPerformed"/>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="Lib_toanBo_buttonActionPerformed"/>
                   </Events>
                 </Component>
-                <Component class="app.bolivia.swing.JCTextField" name="author_text_LIB">
+                <Component class="app.bolivia.swing.JCTextField" name="Lib_author_text">
                   <Properties>
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                       <Font name="Segoe UI" size="18" style="0"/>
@@ -316,7 +317,7 @@
                     <Property name="placeholder" type="java.lang.String" value="Author ID . . ."/>
                   </Properties>
                 </Component>
-                <Component class="javax.swing.JLabel" name="author_label_LIB">
+                <Component class="javax.swing.JLabel" name="Lib_author_label">
                   <Properties>
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                       <Font name="Segoe UI" size="18" style="2"/>
@@ -324,7 +325,7 @@
                     <Property name="text" type="java.lang.String" value="Author_ID :"/>
                   </Properties>
                 </Component>
-                <Component class="javax.swing.JLabel" name="publisher_label_LIB">
+                <Component class="javax.swing.JLabel" name="Lib_publisher_label">
                   <Properties>
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                       <Font name="Segoe UI" size="18" style="2"/>
@@ -332,7 +333,7 @@
                     <Property name="text" type="java.lang.String" value="Publisher ID :"/>
                   </Properties>
                 </Component>
-                <Component class="app.bolivia.swing.JCTextField" name="publisher_text_LIB">
+                <Component class="app.bolivia.swing.JCTextField" name="Lib_publisher_text">
                   <Properties>
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                       <Font name="Segoe UI" size="18" style="0"/>
@@ -340,7 +341,7 @@
                     <Property name="placeholder" type="java.lang.String" value="Publicher ID . . ."/>
                   </Properties>
                 </Component>
-                <Component class="javax.swing.JLabel" name="quantity_label_LIB">
+                <Component class="javax.swing.JLabel" name="Lib_quantity_label">
                   <Properties>
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                       <Font name="Segoe UI" size="18" style="2"/>
@@ -348,7 +349,7 @@
                     <Property name="text" type="java.lang.String" value="Quantity : "/>
                   </Properties>
                 </Component>
-                <Component class="javax.swing.JButton" name="muonSach_button_LIB">
+                <Component class="javax.swing.JButton" name="Lib_muonSach_button">
                   <Properties>
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                       <Font name="Segoe UI" size="18" style="0"/>
@@ -356,10 +357,10 @@
                     <Property name="text" type="java.lang.String" value="M&#x1b0;&#x1ee3;n s&#xe1;ch"/>
                   </Properties>
                   <Events>
-                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="muonSach_button_LIBActionPerformed"/>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="Lib_muonSach_buttonActionPerformed"/>
                   </Events>
                 </Component>
-                <Component class="app.bolivia.swing.JCTextField" name="cate_text">
+                <Component class="app.bolivia.swing.JCTextField" name="Lib_cate_text">
                   <Properties>
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                       <Font name="Segoe UI" size="18" style="0"/>
@@ -367,7 +368,7 @@
                     <Property name="placeholder" type="java.lang.String" value="Category  ID . . ."/>
                   </Properties>
                 </Component>
-                <Component class="app.bolivia.swing.JCTextField" name="quantity_consttext_LIB">
+                <Component class="app.bolivia.swing.JCTextField" name="Lib_quantity_consttext">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="0"/>
                     <Property name="enabled" type="boolean" value="false"/>

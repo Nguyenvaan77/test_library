@@ -39,7 +39,7 @@ public class Library extends javax.swing.JFrame {
     public void Connect(){
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-                    con = DriverManager.getConnection("jdbc:mysql://localhost/" + Database.DB_Name,Database.DB_UserName,Database.DB_Password);
+                    con = DriverManager.getConnection("jdbc:mysql://localhost:3308/" + Database.DB_Name,Database.DB_UserName,Database.DB_Password);
         } catch (ClassNotFoundException | SQLException ex) {
             Logger.getLogger(AdminDashboard.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -49,12 +49,12 @@ public class Library extends javax.swing.JFrame {
 //  *** Search Page
 //  0. Load greetingLibraryPage
     private void Library_greetingLoad(){
-        id_text_LIB.setText("");
-        bookName_text_LIB.setText("");
-        cate_text.setText("");
-        author_text_LIB.setText("");
-        publisher_text_LIB.setText("");
-        quantity_consttext_LIB.setText("0");
+        Lib_id_text.setText("");
+        Lib_bookName_text.setText("");
+        Lib_cate_text.setText("");
+        Lib_author_text.setText("");
+        Lib_publisher_text.setText("");
+        Lib_quantity_consttext.setText("0");
     }
 //  1. Initialize search_page
     private void Library_Load() {
@@ -74,13 +74,13 @@ public class Library extends javax.swing.JFrame {
                 + " WHERE books.Book_ID LIKE ? AND books.Name LIKE ? AND books.Category_ID LIKE ? AND books.Author_ID LIKE ? AND books.Publisher_ID LIKE ? ";
         try {
             pst = con.prepareStatement(sql_cmd);
-            pst.setString(1, "%" + id_text_LIB.getText() + "%");
-            pst.setString(2, "%" + bookName_text_LIB.getText() + "%");
-            pst.setString(3, "%" + cate_text.getText() + "%");
-            pst.setString(4, "%" + author_text_LIB.getText() + "%");
-            pst.setString(5, "%" + publisher_text_LIB.getText() + "%");
+            pst.setString(1, "%" + Lib_id_text.getText() + "%");
+            pst.setString(2, "%" + Lib_bookName_text.getText() + "%");
+            pst.setString(3, "%" + Lib_cate_text.getText() + "%");
+            pst.setString(4, "%" + Lib_author_text.getText() + "%");
+            pst.setString(5, "%" + Lib_publisher_text.getText() + "%");
             rs = pst.executeQuery();
-            DefaultTableModel model = (DefaultTableModel) view_book_library_jscroll.getModel();
+            DefaultTableModel model = (DefaultTableModel) Lib_view_book_ljscroll.getModel();
             model.setNumRows(0);
             while (rs.next()) {
                 Object[] obj = {rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6)};
@@ -93,13 +93,13 @@ public class Library extends javax.swing.JFrame {
 
     //  1.2.1 Load buttons of search panel
     private void Library_buttonLoad() {
-        toanBo_button_LIB.setEnabled(true);
-        timKiem_button_LIB.setEnabled(true);
-        if(quantity_consttext_LIB.getText().equals("0") == true){
-            muonSach_button_LIB.setEnabled(false);
+        Lib_toanBo_button.setEnabled(true);
+        Lib_timKiem_button.setEnabled(true);
+        if(Lib_quantity_consttext.getText().equals("0") == true){
+            Lib_muonSach_button.setEnabled(false);
         }
         else{
-        muonSach_button_LIB.setEnabled(true);
+        Lib_muonSach_button.setEnabled(true);
         }
     }
 
@@ -110,14 +110,14 @@ public class Library extends javax.swing.JFrame {
                 + " WHERE books.Book_ID LIKE ? AND books.Name LIKE ? AND books.Category_ID LIKE ? AND books.Author_ID LIKE ? AND books.Publisher_ID LIKE ? ";
         try {
             pst = con.prepareStatement(sql_cmd);
-            pst.setString(1, "%" + id_text_LIB.getText() + "%");
-            pst.setString(2, "%" + bookName_text_LIB.getText() + "%");
-            pst.setString(3, "%" + cate_text.getText() + "%");
-            pst.setString(4, "%" + author_text_LIB.getText() + "%");
-            pst.setString(5, "%" + publisher_text_LIB.getText() + "%");
+            pst.setString(1, "%" + Lib_id_text.getText() + "%");
+            pst.setString(2, "%" + Lib_bookName_text.getText() + "%");
+            pst.setString(3, "%" + Lib_cate_text.getText() + "%");
+            pst.setString(4, "%" + Lib_author_text.getText() + "%");
+            pst.setString(5, "%" + Lib_publisher_text.getText() + "%");
             rs = pst.executeQuery();
             rs.next();
-            quantity_consttext_LIB.setText(rs.getString(1));
+            Lib_quantity_consttext.setText(rs.getString(1));
         } catch (SQLException ex) {
             Logger.getLogger(AdminDashboard.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -129,14 +129,14 @@ public class Library extends javax.swing.JFrame {
                 + " WHERE books.Book_ID LIKE ? AND books.Name LIKE ? AND books.Category_ID LIKE ? AND books.Author_ID LIKE ? AND books.Publisher_ID LIKE ? ";
         try {
             pst = con.prepareStatement(sql_cmd);
-            pst.setString(1, "%" + id_text_LIB.getText() + "%");
-            pst.setString(2, "%" + bookName_text_LIB.getText() + "%");
-            pst.setString(3, "%" + cate_text.getText() + "%");
-            pst.setString(4, "%" + author_text_LIB.getText() + "%");
-            pst.setString(5, "%" + publisher_text_LIB.getText() + "%");
+            pst.setString(1, "%" + Lib_id_text.getText() + "%");
+            pst.setString(2, "%" + Lib_bookName_text.getText() + "%");
+            pst.setString(3, "%" + Lib_cate_text.getText() + "%");
+            pst.setString(4, "%" + Lib_author_text.getText() + "%");
+            pst.setString(5, "%" + Lib_publisher_text.getText() + "%");
             rs = pst.executeQuery();
             rs.next();
-            quantity_consttext_LIB.setText(rs.getString(1));
+            Lib_quantity_consttext.setText(rs.getString(1));
             
         } catch (SQLException ex) {
             Logger.getLogger(AdminDashboard.class.getName()).log(Level.SEVERE, null, ex);
@@ -146,13 +146,13 @@ public class Library extends javax.swing.JFrame {
     //  *** Return Book 
 //  1. Check What Row is chosen
     private int indexOfRow() {// trả về thứ tự của dòng trong bảng bắt đầu từ 0, nếu không có dòng nào được chọn thì trả về - 1
-        return view_book_library_jscroll.getSelectedRow();
+        return Lib_view_book_ljscroll.getSelectedRow();
     }
     //  2. Return Book
     private boolean returnBook() {
         int indexBook = indexOfRow();
 
-        if (indexOfRow() == -1 || view_book_library_jscroll.getValueAt(indexBook, 4).equals("Returned")) {
+        if (indexOfRow() == -1 || Lib_view_book_ljscroll.getValueAt(indexBook, 4).equals("Returned")) {
             return false;
         }
 
@@ -160,7 +160,7 @@ public class Library extends javax.swing.JFrame {
         try {
             pst = con.prepareStatement(sql_cmd);
             pst.setString(1, "Returned");
-            pst.setString(2, (String) view_book_library_jscroll.getValueAt(indexBook, 0));
+            pst.setString(2, (String) Lib_view_book_ljscroll.getValueAt(indexBook, 0));
             if(pst.executeUpdate() > 0){
                 return true;
             }
@@ -182,25 +182,25 @@ public class Library extends javax.swing.JFrame {
 
         home_page_panel = new javax.swing.JPanel();
         librarypage_panel = new javax.swing.JPanel();
-        view_library_book_jscroll = new javax.swing.JScrollPane();
-        view_book_library_jscroll = new rojeru_san.complementos.RSTableMetro();
+        Lib_view_book_jscrollPane = new javax.swing.JScrollPane();
+        Lib_view_book_ljscroll = new rojeru_san.complementos.RSTableMetro();
         library_panel = new javax.swing.JPanel();
         library_label = new javax.swing.JLabel();
-        book_id_label_LIB = new javax.swing.JLabel();
-        book_name_label_LIB = new javax.swing.JLabel();
-        cate_label_LIB = new javax.swing.JLabel();
-        id_text_LIB = new app.bolivia.swing.JCTextField();
-        bookName_text_LIB = new app.bolivia.swing.JCTextField();
-        timKiem_button_LIB = new javax.swing.JButton();
-        toanBo_button_LIB = new javax.swing.JButton();
-        author_text_LIB = new app.bolivia.swing.JCTextField();
-        author_label_LIB = new javax.swing.JLabel();
-        publisher_label_LIB = new javax.swing.JLabel();
-        publisher_text_LIB = new app.bolivia.swing.JCTextField();
-        quantity_label_LIB = new javax.swing.JLabel();
-        muonSach_button_LIB = new javax.swing.JButton();
-        cate_text = new app.bolivia.swing.JCTextField();
-        quantity_consttext_LIB = new app.bolivia.swing.JCTextField();
+        Lib_book_id_label = new javax.swing.JLabel();
+        Lib_book_name_label = new javax.swing.JLabel();
+        Lib_cate_label = new javax.swing.JLabel();
+        Lib_id_text = new app.bolivia.swing.JCTextField();
+        Lib_bookName_text = new app.bolivia.swing.JCTextField();
+        Lib_timKiem_button = new javax.swing.JButton();
+        Lib_toanBo_button = new javax.swing.JButton();
+        Lib_author_text = new app.bolivia.swing.JCTextField();
+        Lib_author_label = new javax.swing.JLabel();
+        Lib_publisher_label = new javax.swing.JLabel();
+        Lib_publisher_text = new app.bolivia.swing.JCTextField();
+        Lib_quantity_label = new javax.swing.JLabel();
+        Lib_muonSach_button = new javax.swing.JButton();
+        Lib_cate_text = new app.bolivia.swing.JCTextField();
+        Lib_quantity_consttext = new app.bolivia.swing.JCTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -209,7 +209,7 @@ public class Library extends javax.swing.JFrame {
 
         librarypage_panel.setBackground(new java.awt.Color(186, 221, 255));
 
-        view_book_library_jscroll.setModel(new javax.swing.table.DefaultTableModel(
+        Lib_view_book_ljscroll.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
             },
@@ -232,81 +232,81 @@ public class Library extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
-        view_book_library_jscroll.setColorFilasBackgound2(new java.awt.Color(255, 255, 255));
-        view_book_library_jscroll.setRowHeight(50);
-        view_book_library_jscroll.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        view_book_library_jscroll.addFocusListener(new java.awt.event.FocusAdapter() {
+        Lib_view_book_ljscroll.setColorFilasBackgound2(new java.awt.Color(255, 255, 255));
+        Lib_view_book_ljscroll.setRowHeight(50);
+        Lib_view_book_ljscroll.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        Lib_view_book_ljscroll.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
-                view_book_library_jscrollFocusGained(evt);
+                Lib_view_book_ljscrollFocusGained(evt);
             }
         });
-        view_library_book_jscroll.setViewportView(view_book_library_jscroll);
+        Lib_view_book_jscrollPane.setViewportView(Lib_view_book_ljscroll);
 
-        library_label.setText("Library");
         library_label.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
+        library_label.setText("Library");
 
-        book_id_label_LIB.setText("Book_ID :");
-        book_id_label_LIB.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
+        Lib_book_id_label.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
+        Lib_book_id_label.setText("Book_ID :");
 
-        book_name_label_LIB.setText("Book_Name :");
-        book_name_label_LIB.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
+        Lib_book_name_label.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
+        Lib_book_name_label.setText("Book_Name :");
 
-        cate_label_LIB.setText("Category_ID :");
-        cate_label_LIB.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
+        Lib_cate_label.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
+        Lib_cate_label.setText("Category_ID :");
 
-        id_text_LIB.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        id_text_LIB.setPlaceholder("ID . . .");
+        Lib_id_text.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        Lib_id_text.setPlaceholder("ID . . .");
 
-        bookName_text_LIB.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        bookName_text_LIB.setPlaceholder("Name . . .");
+        Lib_bookName_text.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        Lib_bookName_text.setPlaceholder("Name . . .");
 
-        timKiem_button_LIB.setText("Tìm kiếm");
-        timKiem_button_LIB.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        timKiem_button_LIB.addActionListener(new java.awt.event.ActionListener() {
+        Lib_timKiem_button.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        Lib_timKiem_button.setText("Tìm kiếm");
+        Lib_timKiem_button.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                timKiem_button_LIBActionPerformed(evt);
+                Lib_timKiem_buttonActionPerformed(evt);
             }
         });
 
-        toanBo_button_LIB.setText("Toàn bộ");
-        toanBo_button_LIB.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        toanBo_button_LIB.setToolTipText("");
-        toanBo_button_LIB.addActionListener(new java.awt.event.ActionListener() {
+        Lib_toanBo_button.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        Lib_toanBo_button.setText("Toàn bộ");
+        Lib_toanBo_button.setToolTipText("");
+        Lib_toanBo_button.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                toanBo_button_LIBActionPerformed(evt);
+                Lib_toanBo_buttonActionPerformed(evt);
             }
         });
 
-        author_text_LIB.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        author_text_LIB.setPlaceholder("Author ID . . .");
+        Lib_author_text.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        Lib_author_text.setPlaceholder("Author ID . . .");
 
-        author_label_LIB.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
-        author_label_LIB.setText("Author_ID :");
+        Lib_author_label.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
+        Lib_author_label.setText("Author_ID :");
 
-        publisher_label_LIB.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
-        publisher_label_LIB.setText("Publisher ID :");
+        Lib_publisher_label.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
+        Lib_publisher_label.setText("Publisher ID :");
 
-        publisher_text_LIB.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        publisher_text_LIB.setPlaceholder("Publicher ID . . .");
+        Lib_publisher_text.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        Lib_publisher_text.setPlaceholder("Publicher ID . . .");
 
-        quantity_label_LIB.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
-        quantity_label_LIB.setText("Quantity : ");
+        Lib_quantity_label.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
+        Lib_quantity_label.setText("Quantity : ");
 
-        muonSach_button_LIB.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        muonSach_button_LIB.setText("Mượn sách");
-        muonSach_button_LIB.addActionListener(new java.awt.event.ActionListener() {
+        Lib_muonSach_button.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        Lib_muonSach_button.setText("Mượn sách");
+        Lib_muonSach_button.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                muonSach_button_LIBActionPerformed(evt);
+                Lib_muonSach_buttonActionPerformed(evt);
             }
         });
 
-        cate_text.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        cate_text.setPlaceholder("Category  ID . . .");
+        Lib_cate_text.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        Lib_cate_text.setPlaceholder("Category  ID . . .");
 
-        quantity_consttext_LIB.setText("0");
-        quantity_consttext_LIB.setEnabled(false);
-        quantity_consttext_LIB.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        quantity_consttext_LIB.setPlaceholder("0");
+        Lib_quantity_consttext.setText("0");
+        Lib_quantity_consttext.setEnabled(false);
+        Lib_quantity_consttext.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        Lib_quantity_consttext.setPlaceholder("0");
 
         javax.swing.GroupLayout library_panelLayout = new javax.swing.GroupLayout(library_panel);
         library_panel.setLayout(library_panelLayout);
@@ -315,36 +315,36 @@ public class Library extends javax.swing.JFrame {
             .addGroup(library_panelLayout.createSequentialGroup()
                 .addGap(28, 28, 28)
                 .addGroup(library_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(book_name_label_LIB)
-                    .addComponent(cate_label_LIB)
+                    .addComponent(Lib_book_name_label)
+                    .addComponent(Lib_cate_label)
                     .addGroup(library_panelLayout.createSequentialGroup()
                         .addComponent(library_label)
                         .addGap(45, 45, 45)
-                        .addComponent(book_id_label_LIB)))
+                        .addComponent(Lib_book_id_label)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(library_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(id_text_LIB, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(bookName_text_LIB, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(cate_text, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(Lib_id_text, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(Lib_bookName_text, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(Lib_cate_text, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 57, Short.MAX_VALUE)
                 .addGroup(library_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(library_panelLayout.createSequentialGroup()
                         .addGroup(library_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(publisher_label_LIB)
-                            .addComponent(quantity_label_LIB)
-                            .addComponent(author_label_LIB))
+                            .addComponent(Lib_publisher_label)
+                            .addComponent(Lib_quantity_label)
+                            .addComponent(Lib_author_label))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(library_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(author_text_LIB, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(publisher_text_LIB, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(quantity_consttext_LIB, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(Lib_author_text, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(Lib_publisher_text, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(Lib_quantity_consttext, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(41, 41, 41))
                     .addGroup(library_panelLayout.createSequentialGroup()
-                        .addComponent(toanBo_button_LIB)
+                        .addComponent(Lib_toanBo_button)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(timKiem_button_LIB)
+                        .addComponent(Lib_timKiem_button)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(muonSach_button_LIB)
+                        .addComponent(Lib_muonSach_button)
                         .addGap(4, 4, 4))))
         );
         library_panelLayout.setVerticalGroup(
@@ -352,41 +352,41 @@ public class Library extends javax.swing.JFrame {
             .addGroup(library_panelLayout.createSequentialGroup()
                 .addGap(20, 20, 20)
                 .addGroup(library_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(library_panelLayout.createSequentialGroup()
-                        .addGroup(library_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(library_label)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, library_panelLayout.createSequentialGroup()
+                        .addGroup(library_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(library_panelLayout.createSequentialGroup()
                                 .addGap(1, 1, 1)
                                 .addGroup(library_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(id_text_LIB, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(book_id_label_LIB))))
+                                    .addComponent(Lib_id_text, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(Lib_book_id_label)))
+                            .addComponent(library_label))
                         .addGap(18, 18, 18)
                         .addGroup(library_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(bookName_text_LIB, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(book_name_label_LIB))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(library_panelLayout.createSequentialGroup()
+                            .addComponent(Lib_bookName_text, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(Lib_book_name_label)))
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, library_panelLayout.createSequentialGroup()
                         .addGroup(library_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(author_text_LIB, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(author_label_LIB))
+                            .addComponent(Lib_author_text, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(Lib_author_label))
                         .addGroup(library_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(library_panelLayout.createSequentialGroup()
                                 .addGap(40, 40, 40)
-                                .addComponent(publisher_label_LIB))
+                                .addComponent(Lib_publisher_label))
                             .addGroup(library_panelLayout.createSequentialGroup()
                                 .addGap(36, 36, 36)
-                                .addComponent(publisher_text_LIB, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(Lib_publisher_text, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addGap(34, 34, 34)
                         .addGroup(library_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(quantity_label_LIB)
-                            .addComponent(cate_text, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(cate_label_LIB)
-                            .addComponent(quantity_consttext_LIB, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 22, Short.MAX_VALUE)))
-                .addGroup(library_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(toanBo_button_LIB, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(muonSach_button_LIB)
-                    .addComponent(timKiem_button_LIB, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(Lib_quantity_label)
+                            .addComponent(Lib_cate_text, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(Lib_cate_label)
+                            .addComponent(Lib_quantity_consttext, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(library_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(Lib_toanBo_button, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(library_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(Lib_muonSach_button)
+                        .addComponent(Lib_timKiem_button, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(15, 15, 15))
         );
 
@@ -396,7 +396,7 @@ public class Library extends javax.swing.JFrame {
             librarypage_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, librarypage_panelLayout.createSequentialGroup()
                 .addGroup(librarypage_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(view_library_book_jscroll, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(Lib_view_book_jscrollPane, javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(library_panel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -405,7 +405,7 @@ public class Library extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, librarypage_panelLayout.createSequentialGroup()
                 .addComponent(library_panel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(view_library_book_jscroll, javax.swing.GroupLayout.PREFERRED_SIZE, 401, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(Lib_view_book_jscrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 401, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
@@ -435,25 +435,25 @@ public class Library extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void toanBo_button_LIBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_toanBo_button_LIBActionPerformed
+    private void Lib_toanBo_buttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Lib_toanBo_buttonActionPerformed
         // TODO add your handling code here:
             Library_greetingLoad();
             Library_Load();
-    }//GEN-LAST:event_toanBo_button_LIBActionPerformed
+    }//GEN-LAST:event_Lib_toanBo_buttonActionPerformed
 
-    private void timKiem_button_LIBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_timKiem_button_LIBActionPerformed
+    private void Lib_timKiem_buttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Lib_timKiem_buttonActionPerformed
         // TODO add your handling code here:
             Library_Load();
-    }//GEN-LAST:event_timKiem_button_LIBActionPerformed
+    }//GEN-LAST:event_Lib_timKiem_buttonActionPerformed
 
-    private void muonSach_button_LIBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_muonSach_button_LIBActionPerformed
+    private void Lib_muonSach_buttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Lib_muonSach_buttonActionPerformed
         // TODO add your handling code here:
         
-    }//GEN-LAST:event_muonSach_button_LIBActionPerformed
+    }//GEN-LAST:event_Lib_muonSach_buttonActionPerformed
 
-    private void view_book_library_jscrollFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_view_book_library_jscrollFocusGained
+    private void Lib_view_book_ljscrollFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_Lib_view_book_ljscrollFocusGained
         // TODO add your handling code here:
-    }//GEN-LAST:event_view_book_library_jscrollFocusGained
+    }//GEN-LAST:event_Lib_view_book_ljscrollFocusGained
 
     /**
      * @param args the command line arguments
@@ -494,26 +494,26 @@ public class Library extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel author_label_LIB;
-    private app.bolivia.swing.JCTextField author_text_LIB;
-    private app.bolivia.swing.JCTextField bookName_text_LIB;
-    private javax.swing.JLabel book_id_label_LIB;
-    private javax.swing.JLabel book_name_label_LIB;
-    private javax.swing.JLabel cate_label_LIB;
-    private app.bolivia.swing.JCTextField cate_text;
+    private javax.swing.JLabel Lib_author_label;
+    private app.bolivia.swing.JCTextField Lib_author_text;
+    private app.bolivia.swing.JCTextField Lib_bookName_text;
+    private javax.swing.JLabel Lib_book_id_label;
+    private javax.swing.JLabel Lib_book_name_label;
+    private javax.swing.JLabel Lib_cate_label;
+    private app.bolivia.swing.JCTextField Lib_cate_text;
+    private app.bolivia.swing.JCTextField Lib_id_text;
+    private javax.swing.JButton Lib_muonSach_button;
+    private javax.swing.JLabel Lib_publisher_label;
+    private app.bolivia.swing.JCTextField Lib_publisher_text;
+    private app.bolivia.swing.JCTextField Lib_quantity_consttext;
+    private javax.swing.JLabel Lib_quantity_label;
+    private javax.swing.JButton Lib_timKiem_button;
+    private javax.swing.JButton Lib_toanBo_button;
+    private javax.swing.JScrollPane Lib_view_book_jscrollPane;
+    private rojeru_san.complementos.RSTableMetro Lib_view_book_ljscroll;
     private javax.swing.JPanel home_page_panel;
-    private app.bolivia.swing.JCTextField id_text_LIB;
     private javax.swing.JLabel library_label;
     private javax.swing.JPanel library_panel;
     private javax.swing.JPanel librarypage_panel;
-    private javax.swing.JButton muonSach_button_LIB;
-    private javax.swing.JLabel publisher_label_LIB;
-    private app.bolivia.swing.JCTextField publisher_text_LIB;
-    private app.bolivia.swing.JCTextField quantity_consttext_LIB;
-    private javax.swing.JLabel quantity_label_LIB;
-    private javax.swing.JButton timKiem_button_LIB;
-    private javax.swing.JButton toanBo_button_LIB;
-    private rojeru_san.complementos.RSTableMetro view_book_library_jscroll;
-    private javax.swing.JScrollPane view_library_book_jscroll;
     // End of variables declaration//GEN-END:variables
 }
