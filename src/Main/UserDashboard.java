@@ -13,7 +13,10 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Month;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -25,27 +28,36 @@ import javax.swing.table.DefaultTableModel;
  */
 public class UserDashboard extends javax.swing.JFrame {
     public String AccountName;
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final int NO_SELECTION = -1;
+    class Table_status {
+        public int Previous_book_selected;
+        public Table_status() {
+            this.Previous_book_selected = NO_SELECTION;
+        }        
+    }
+    Table_status table_status = new Table_status();
     /**
      * Creates new form User_DEMO
      */
     public UserDashboard(String AccountName) {
         this.AccountName = AccountName;
+        this.con = Database.getInstance().getConnection();
         initComponents();
-        Connect();
         UserGreeting_Load();
     }
     
     Connection con;
     PreparedStatement pst;
     ResultSet rs;
-    public void Connect(){
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-                    con = DriverManager.getConnection("jdbc:mysql://localhost:3308/" + Database.DB_Name,Database.DB_UserName,Database.DB_Password);
-        } catch (ClassNotFoundException | SQLException ex) {
-            Logger.getLogger(AdminDashboard.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    } 
+//    public void Connect(){
+//        try {
+//            Class.forName("com.mysql.cj.jdbc.Driver");
+//                con = DriverManager.getConnection("jdbc:mysql://localhost:3308/" + Database.DB_Name,Database.DB_UserName,Database.DB_Password);
+//        } catch (ClassNotFoundException | SQLException ex) {
+//            Logger.getLogger(AdminDashboard.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//    } 
     
 //Load UserGreeting in
     private void UserGreeting_Load() {
@@ -80,7 +92,7 @@ public class UserDashboard extends javax.swing.JFrame {
         String sql_cmd = "SELECT issuebooks.Status "
                 + " FROM issuebooks "
                 + " JOIN books ON issuebooks.Book_ID = books.Book_ID "
-                + " JOIN accounts ON issuebooks.User_ID = accounts.AccountName "
+                + " JOIN accounts ON issuebooks.UserName = accounts.AccountName "
                 + " WHERE accounts.AccountName = ? ";
         try {
             pst = con.prepareStatement(sql_cmd);
@@ -114,11 +126,12 @@ public class UserDashboard extends javax.swing.JFrame {
         String sql_cmd = "SELECT issuebooks.Book_ID,books.Name,issuebooks.IssueDate,issuebooks.DueDate,issuebooks.Status "
                 + "FROM issuebooks "
                 + " JOIN books ON issuebooks.Book_ID = books.Book_ID "
-                + " JOIN accounts ON issuebooks.User_ID = accounts.AccountName "
-                + "WHERE accounts.AccountName = ?";
+                + " JOIN accounts ON issuebooks.UserName = accounts.AccountName "
+                + "WHERE accounts.AccountName = ? AND issuebooks.Status NOT IN (?) ";
         try {
             pst = con.prepareStatement(sql_cmd);
             pst.setString(1, AccountName);
+            pst.setString(2, "Returned");
             rs = pst.executeQuery();
             DefaultTableModel model = (DefaultTableModel)view_book_jscroll.getModel();
             model.setNumRows(0);
@@ -131,7 +144,117 @@ public class UserDashboard extends javax.swing.JFrame {
         }
     }
 //---------------------------------------------------------------------------------------------------------------------------------------------
-   
+////Initialize Book_panel
+    private void Book_panelLoad() {
+//        book_combobox_check.reset();
+        
+        Book_TableLoad();
+        Book_ComboboxDataLoad();
+        Book_buttonLoad();
+        Book_TextandComboboxLoad();
+    }       
+//Load button_status when initialize AdminDashboard
+    private void Book_buttonLoad() {
+        book_reviewButton.setEnabled(true);
+        book_searchButton.setEnabled(false);
+        if(book_table.getSelectedRow() >= 0){
+            book_borrowButton.setEnabled(true);
+        }
+        else{
+            book_borrowButton.setEnabled(false);
+        }
+//        book_category.setEnabled(false);
+//        book_author.setEnabled(false);
+//        book_publisher.setEnabled(false);
+    }
+//Load text and combobox status when initialize AdminDashboard
+    private void Book_TextandComboboxLoad() {
+        book_id_search.setSelectedIndex(0);
+        book_name.setText("");
+        book_quantity.setText("");
+        book_category.setSelectedIndex(-1);
+        book_author.setSelectedIndex(-1);
+        book_publisher.setSelectedIndex(-1);
+        book_category_search.setSelectedIndex(0);
+        book_author_search.setSelectedIndex(0);
+        book_publisher_search.setSelectedIndex(0);        
+    }
+// Load publisher_table in Book_panel
+    private void Book_TableLoad(){
+            table_status.Previous_book_selected = NO_SELECTION;
+            try {
+                pst = con.prepareStatement("SELECT b.Book_ID, b.Name,c.Category_ID ,c.Name as Category,a.Author_ID,a.Name as Author,p.Publisher_ID,p.Name as Publisher, b.Quantity FROM `books`b "
+                        + "JOIN categories c ON b.Category_ID = c.Category_ID "
+                        + "JOIN authors a ON b.Author_ID = a.Author_ID "
+                        + "JOIN publishers p ON b.Publisher_ID = p.Publisher_ID Order By b.Book_ID ASC");
+                rs = pst.executeQuery();
+                int columns = 6;
+                DefaultTableModel model = (DefaultTableModel)book_table.getModel();
+                model.setRowCount(0);
+                while(rs.next()){
+                    Object[] obj = new Object[columns];
+                    obj[0] = rs.getString("Book_ID");
+                    obj[1] = rs.getString("Name");
+                    obj[2] = new CategoryItem(rs.getInt("Category_ID"), rs.getString("Category"));
+                    obj[3] = new AuthorItem(rs.getInt("Author_ID"), rs.getString("Author"));
+                    obj[4] = new PublisherItem(rs.getInt("Publisher_ID"), rs.getString("Publisher"));
+                    obj[5] = rs.getString("Quantity");
+                    model.addRow(obj);
+                }
+
+            } catch (SQLException ex) {
+                Logger.getLogger(AdminDashboard.class.getName()).log(Level.SEVERE, null, ex);
+            }       
+        }
+//Load publisher id into publisher_id combobox
+    private void Book_ComboboxDataLoad(){
+        try {
+            book_id_search.removeAllItems();        
+            book_category.removeAllItems();
+            book_author.removeAllItems();
+            book_publisher.removeAllItems();
+            book_category_search.removeAllItems();
+            book_author_search.removeAllItems();
+            book_publisher_search.removeAllItems();            
+            pst = con.prepareStatement("Select Book_ID from Books b");
+            book_id_search.addItem("All");
+//            book_combobox_check.book_id_check = true;
+            rs = pst.executeQuery();
+            while(rs.next()){
+                book_id_search.addItem(rs.getString("Book_ID"));
+            }
+            //Load book_category
+            pst = con.prepareStatement("SELECT Category_ID, Name FROM categories");
+            rs = pst.executeQuery();
+            book_category_search.addItem(new CategoryItem(-1,"All"));
+//            book_combobox_check.book_category_check = true;
+            while(rs.next()){
+                book_category.addItem(new CategoryItem(rs.getInt("Category_ID"), rs.getString("Name")));
+                book_category_search.addItem(new CategoryItem(rs.getInt("Category_ID"), rs.getString("Name")));
+            }
+            //Load book_author
+            pst = con.prepareStatement("SELECT Author_ID, Name FROM authors");
+            rs = pst.executeQuery();
+            book_author_search.addItem(new AuthorItem(-1,"All"));
+//            book_combobox_check.book_author_check = true;
+            while(rs.next()){
+                book_author.addItem(new AuthorItem(rs.getInt("Author_ID"), rs.getString("Name")));
+                book_author_search.addItem(new AuthorItem(rs.getInt("Author_ID"), rs.getString("Name")));
+            }
+            //Load book_publisher
+            pst = con.prepareStatement("SELECT Publisher_ID, Name FROM publishers");
+            rs = pst.executeQuery();
+            book_publisher_search.addItem(new PublisherItem(-1,"All"));
+//            book_combobox_check.book_publisher_check = true;
+            while(rs.next()){
+                book_publisher.addItem(new PublisherItem(rs.getInt("Publisher_ID"),rs.getString("Name")));
+                book_publisher_search.addItem(new PublisherItem(rs.getInt("Publisher_ID"),rs.getString("Name")));
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(AdminDashboard.class.getName()).log(Level.SEVERE, null, ex);
+        }           
+    } 
+//---------------------------------------------------------------------------------------------------------------------------------------------     
 //Turn off all button
     private void TurnOffButtons() {
         Color color = new Color(255,219,150);
@@ -174,7 +297,7 @@ public class UserDashboard extends javax.swing.JFrame {
 //Function help checking change_password
     private void Change_password(String correctCurPass,String curPass, String newPass, String confirmPass){
         if(correctCurPass.equals("") == true || correctCurPass.equals("") == true || correctCurPass.equals("") == true || correctCurPass.equals("") == true){
-            JOptionPane.showMessageDialog(this, "Phan nhap mat khau khong duoc de trong");
+            JOptionPane.showMessageDialog(this, "The password field cannot be left empty");
         }
         else{
             if(correctCurPass.equals(curPass) == false){
@@ -182,11 +305,11 @@ public class UserDashboard extends javax.swing.JFrame {
             }
             else{
                 if(newPass.equals(confirmPass) == false){
-                    JOptionPane.showMessageDialog(this, "newPass and confirmPass is not Same");
+                    JOptionPane.showMessageDialog(this, "newPass and confirmPass is not the same");
                 }
                 else{
                     if(curPass.equals(confirmPass) == true){
-                        JOptionPane.showMessageDialog(this, "mat khau cu phai khac mat khau moi");
+                        JOptionPane.showMessageDialog(this, "Old password must differ from new password");
                     }
                     else{
                         JOptionPane.showMessageDialog(this, "Submit successfully");
@@ -320,11 +443,15 @@ public class UserDashboard extends javax.swing.JFrame {
         String sql_cmd = " SELECT issuebooks.Book_ID,books.Name,issuebooks.IssueDate,issuebooks.DueDate,issuebooks.Status "
                 + " FROM issuebooks "
                 + " JOIN books ON issuebooks.Book_ID = books.Book_ID "
-                + " JOIN accounts ON issuebooks.User_ID = accounts.AccountName "
+                + " JOIN accounts ON issuebooks.UserName = accounts.AccountName "
                 + " WHERE accounts.AccountName = ? AND issuebooks.Book_ID LIKE ? AND books.Name LIKE ? AND issuebooks.IssueDate >= ? AND issuebooks.DueDate <= ? ";
         String cur_Status = (String) trangThai_cbbox.getSelectedItem();
         if ((cur_Status).equals("All") == false) {
-            String extraString = " AND issuebooks.Status = ?";
+            String extraString = " AND issuebooks.Status = ? ";
+            sql_cmd += extraString;
+        }
+        else{
+            String extraString = " AND issuebooks.Status NOT IN (?) ";
             sql_cmd += extraString;
         }
         try {
@@ -336,6 +463,9 @@ public class UserDashboard extends javax.swing.JFrame {
             pst.setString(5, String.format("%d-%d-%d", ngayTra_date.getDate().getYear(), ngayTra_date.getDate().getMonthValue(), ngayTra_date.getDate().getDayOfMonth()));
             if ((cur_Status).equals("All") == false) {
                 pst.setString(6, cur_Status);
+            }
+            else{
+                pst.setString(6,"Returned");
             }
             rs = pst.executeQuery();
             DefaultTableModel model = (DefaultTableModel) view_book_search_jscroll.getModel();
@@ -357,32 +487,49 @@ public class UserDashboard extends javax.swing.JFrame {
 
 //  1.2.2 Load text od search panel
     private void SearchBook_textLoad() {
-
     }
 //******************************************************************************
     //  *** Return Book 
 //  1. Check What Row is chosen
     private int indexOfRow() {// trả về thứ tự của dòng trong bảng bắt đầu từ 0, nếu không có dòng nào được chọn thì trả về - 1
-        return view_book_jscroll.getSelectedRow();
+        return view_book_search_jscroll.getSelectedRow();
     }
     //  2. Return Book
     private boolean returnBook() {
         int indexBook = indexOfRow();
 
-        if (indexOfRow() == -1 || view_book_jscroll.getValueAt(indexBook, 4).equals("Returned")) {
+        if (indexOfRow() == -1 || view_book_search_jscroll.getValueAt(indexBook, 4).equals("Returned")) {
             return false;
         }
 
-        String sql_cmd = "UPDATE issuebooks SET issuebooks.Status = ? WHERE issuebooks.Book_ID = ? ";
+        String sql_cmd_UpdateStatus = "UPDATE issuebooks SET issuebooks.Status = ? , issuebooks.ActualDueDate = ? WHERE issuebooks.Book_ID = ? ";
+        String sql_cmd_UpdateCount = "UPDATE books SET books.Quantity = books.Quantity + 1 WHERE books.Book_ID = ? ";
+        PreparedStatement pstStatus;
+        PreparedStatement pstCount;
         try {
-            pst = con.prepareStatement(sql_cmd);
-            pst.setString(1, "Returned");
-            pst.setString(2, (String) view_book_jscroll.getValueAt(indexBook, 0));
-            if(pst.executeUpdate() > 0){
-                return true;
-            }
+            con.setAutoCommit(false);
+            pstStatus = con.prepareStatement(sql_cmd_UpdateStatus);
+            pstStatus.setString(1, "Returned");
+            pstStatus.setString(2, LocalDateTime.now().format(formatter));
+            pstStatus.setString(3, (String) view_book_search_jscroll.getValueAt(indexBook, 0));
+            int countChangeStatus = pstStatus.executeUpdate();
+            
+            pstCount = con.prepareStatement(sql_cmd_UpdateCount);
+            pstCount.setString(1,view_book_search_jscroll.getValueAt(indexBook,0).toString());
+            int countChangeCount = pstCount.executeUpdate();
+            
+            con.commit();
+            
+            return countChangeStatus > 0 && countChangeCount > 0;
         } catch (SQLException ex) {
             Logger.getLogger(AdminDashboard.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        finally{
+            try{
+                con.setAutoCommit(true);
+            } catch (SQLException ex) {
+            Logger.getLogger(AdminDashboard.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         return false;
     }
@@ -502,6 +649,35 @@ public class UserDashboard extends javax.swing.JFrame {
         toanBo_button = new javax.swing.JButton();
         jLabel36 = new javax.swing.JLabel();
         jLabel22 = new javax.swing.JLabel();
+        book_panel = new javax.swing.JPanel();
+        jScrollPane7 = new javax.swing.JScrollPane();
+        book_table = new rojeru_san.complementos.RSTableMetro();
+        jPanel6 = new javax.swing.JPanel();
+        book_id_search = new javax.swing.JComboBox();
+        book_name = new javax.swing.JTextField();
+        jLabel37 = new javax.swing.JLabel();
+        book_author = new javax.swing.JComboBox<>();
+        book_publisher = new javax.swing.JComboBox<>();
+        book_category = new javax.swing.JComboBox<>();
+        book_quantity = new javax.swing.JTextField();
+        jLabel38 = new javax.swing.JLabel();
+        jLabel39 = new javax.swing.JLabel();
+        jLabel66 = new javax.swing.JLabel();
+        jLabel67 = new javax.swing.JLabel();
+        jLabel68 = new javax.swing.JLabel();
+        jLabel69 = new javax.swing.JLabel();
+        book_searchButton = new javax.swing.JButton();
+        book_id = new javax.swing.JTextField();
+        jLabel40 = new javax.swing.JLabel();
+        jLabel41 = new javax.swing.JLabel();
+        book_category_search = new javax.swing.JComboBox();
+        jLabel42 = new javax.swing.JLabel();
+        book_author_search = new javax.swing.JComboBox();
+        book_publisher_search = new javax.swing.JComboBox();
+        jLabel43 = new javax.swing.JLabel();
+        jLabel70 = new javax.swing.JLabel();
+        book_reviewButton = new javax.swing.JButton();
+        book_borrowButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setUndecorated(true);
@@ -534,9 +710,9 @@ public class UserDashboard extends javax.swing.JFrame {
         jLabel1.setText("Library Management System");
         jPanel2.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 10, 310, 30));
 
+        user_name.setText("Welcome, User ");
         user_name.setFont(new java.awt.Font("Yu Gothic UI", 1, 18)); // NOI18N
         user_name.setForeground(new java.awt.Color(255, 255, 255));
-        user_name.setText("Welcome, User ");
         jPanel2.add(user_name, new org.netbeans.lib.awtextra.AbsoluteConstraints(890, 10, 150, 30));
 
         jLabel5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/adminIcons/member_off_off_50px.png"))); // NOI18N
@@ -631,7 +807,7 @@ public class UserDashboard extends javax.swing.JFrame {
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(edit_profile_button, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(home_page_button, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(change_password_button, javax.swing.GroupLayout.DEFAULT_SIZE, 230, Short.MAX_VALUE)
+                    .addComponent(change_password_button, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(logout_button, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(myBookShelf_button, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(goToLibrary_button, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -667,6 +843,7 @@ public class UserDashboard extends javax.swing.JFrame {
 
         returnedNumber.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/adminIcons/return_book_50px.png"))); // NOI18N
         returnedNumber.setFont(new java.awt.Font("Segoe UI", 0, 28)); // NOI18N
+        returnedNumber.setForeground(new java.awt.Color(102, 102, 102));
 
         javax.swing.GroupLayout jPanel8Layout = new javax.swing.GroupLayout(jPanel8);
         jPanel8.setLayout(jPanel8Layout);
@@ -694,6 +871,7 @@ public class UserDashboard extends javax.swing.JFrame {
         borrowedNumber.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         borrowedNumber.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/adminIcons/book_50px.png"))); // NOI18N
         borrowedNumber.setFont(new java.awt.Font("Segoe UI", 0, 28)); // NOI18N
+        borrowedNumber.setForeground(new java.awt.Color(102, 102, 102));
 
         javax.swing.GroupLayout jPanel9Layout = new javax.swing.GroupLayout(jPanel9);
         jPanel9.setLayout(jPanel9Layout);
@@ -715,6 +893,7 @@ public class UserDashboard extends javax.swing.JFrame {
         overtimeNumber.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Assets/adminIcons/over_time_50px.png"))); // NOI18N
         overtimeNumber.setBackground(new java.awt.Color(186, 221, 255));
         overtimeNumber.setFont(new java.awt.Font("Segoe UI", 0, 28)); // NOI18N
+        overtimeNumber.setForeground(new java.awt.Color(102, 102, 102));
 
         javax.swing.GroupLayout jPanel11Layout = new javax.swing.GroupLayout(jPanel11);
         jPanel11.setLayout(jPanel11Layout);
@@ -767,7 +946,15 @@ public class UserDashboard extends javax.swing.JFrame {
         view_book_jscroll.setColorFilasBackgound2(new java.awt.Color(255, 255, 255));
         view_book_jscroll.setRowHeight(50);
         view_book_jscroll.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        view_book_jscroll.getTableHeader().setReorderingAllowed(false);
         jScrollPane1.setViewportView(view_book_jscroll);
+        if (view_book_jscroll.getColumnModel().getColumnCount() > 0) {
+            view_book_jscroll.getColumnModel().getColumn(0).setResizable(false);
+            view_book_jscroll.getColumnModel().getColumn(1).setResizable(false);
+            view_book_jscroll.getColumnModel().getColumn(2).setResizable(false);
+            view_book_jscroll.getColumnModel().getColumn(3).setResizable(false);
+            view_book_jscroll.getColumnModel().getColumn(4).setResizable(false);
+        }
 
         jPanel4.setBackground(new java.awt.Color(186, 221, 255));
 
@@ -1304,9 +1491,14 @@ public class UserDashboard extends javax.swing.JFrame {
         view_book_search_jscroll.setColorFilasBackgound2(new java.awt.Color(255, 204, 153));
         view_book_search_jscroll.setRowHeight(50);
         view_book_search_jscroll.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        view_book_search_jscroll.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                view_book_search_jscrollMouseClicked(evt);
+            }
+        });
         view_search_book_jscroll.setViewportView(view_book_search_jscroll);
 
-        search_panel.setBackground(new java.awt.Color(186, 221, 255));
+        search_panel.setBackground(new java.awt.Color(255, 255, 255));
 
         tim_kiem_panel.setText("Search");
         tim_kiem_panel.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
@@ -1358,7 +1550,7 @@ public class UserDashboard extends javax.swing.JFrame {
             }
         });
 
-        trangThai_cbbox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "All", "Borrowed", "Returned", "OverTime", " " }));
+        trangThai_cbbox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "All", "Borrowed", "OverTime", "" }));
         trangThai_cbbox.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 112, 192), 2));
         trangThai_cbbox.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
 
@@ -1490,6 +1682,255 @@ public class UserDashboard extends javax.swing.JFrame {
 
         Parent_panel.add(searchbook_panel, "card5");
 
+        book_table.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null}
+            },
+            new String [] {
+                "Book_ID", "Name", "Category", "Author", "Publisher", "Quantity"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.String.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.String.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        book_table.setColorFilasBackgound2(new java.awt.Color(204, 255, 51));
+        book_table.setMultipleSeleccion(false);
+        book_table.getTableHeader().setReorderingAllowed(false);
+        book_table.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                book_tableMouseClicked(evt);
+            }
+        });
+        jScrollPane7.setViewportView(book_table);
+
+        jPanel6.setBackground(new java.awt.Color(255, 51, 102));
+
+        book_id_search.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                book_id_searchItemStateChanged(evt);
+            }
+        });
+
+        jLabel37.setText("Name");
+
+        book_author.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                book_authorItemStateChanged(evt);
+            }
+        });
+
+        book_publisher.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                book_publisherItemStateChanged(evt);
+            }
+        });
+
+        book_category.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                book_categoryItemStateChanged(evt);
+            }
+        });
+
+        jLabel38.setText("Quantity");
+
+        jLabel39.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel39.setText("Info");
+        jLabel39.setFont(new java.awt.Font("Yu Gothic UI", 1, 36)); // NOI18N
+
+        jLabel66.setText("ID");
+
+        jLabel67.setText("Category");
+
+        jLabel68.setText("Author");
+
+        jLabel69.setText("Publisher");
+
+        book_searchButton.setText("SEARCH");
+        book_searchButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                book_searchButtonActionPerformed(evt);
+            }
+        });
+
+        book_id.setDisabledTextColor(new java.awt.Color(0, 0, 0));
+        book_id.setEnabled(false);
+
+        jLabel40.setText("ID");
+
+        jLabel41.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel41.setText("Search");
+        jLabel41.setFont(new java.awt.Font("Yu Gothic UI", 1, 36)); // NOI18N
+
+        jLabel42.setText("Category");
+
+        jLabel43.setText("Author");
+
+        jLabel70.setText("Publisher");
+
+        book_reviewButton.setText("REVIEW");
+        book_reviewButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                book_reviewButtonActionPerformed(evt);
+            }
+        });
+
+        book_borrowButton.setText("BORROW");
+        book_borrowButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                book_borrowButtonActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
+        jPanel6.setLayout(jPanel6Layout);
+        jPanel6Layout.setHorizontalGroup(
+            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel6Layout.createSequentialGroup()
+                .addGap(31, 31, 31)
+                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel6Layout.createSequentialGroup()
+                        .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jLabel37, javax.swing.GroupLayout.DEFAULT_SIZE, 54, Short.MAX_VALUE)
+                            .addComponent(jLabel38, javax.swing.GroupLayout.DEFAULT_SIZE, 54, Short.MAX_VALUE)
+                            .addComponent(jLabel66, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel67, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jLabel68, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jLabel69, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(18, 18, 18)
+                        .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(book_quantity)
+                            .addComponent(book_name)
+                            .addComponent(book_category, javax.swing.GroupLayout.Alignment.LEADING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(book_author, javax.swing.GroupLayout.Alignment.LEADING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(book_publisher, javax.swing.GroupLayout.Alignment.LEADING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel6Layout.createSequentialGroup()
+                                .addComponent(book_reviewButton, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(book_borrowButton, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(book_id, javax.swing.GroupLayout.Alignment.LEADING))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(book_searchButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 104, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createSequentialGroup()
+                                .addComponent(jLabel40, javax.swing.GroupLayout.PREFERRED_SIZE, 57, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(book_id_search, javax.swing.GroupLayout.PREFERRED_SIZE, 147, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createSequentialGroup()
+                                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel43, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel70, javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(jLabel42, javax.swing.GroupLayout.Alignment.TRAILING))
+                                .addGap(18, 18, 18)
+                                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(book_category_search, 0, 147, Short.MAX_VALUE)
+                                    .addComponent(book_author_search, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(book_publisher_search, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))))
+                    .addGroup(jPanel6Layout.createSequentialGroup()
+                        .addGap(66, 66, 66)
+                        .addComponent(jLabel39, javax.swing.GroupLayout.PREFERRED_SIZE, 155, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(290, 290, 290)
+                        .addComponent(jLabel41, javax.swing.GroupLayout.PREFERRED_SIZE, 142, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(210, 210, 210))
+        );
+        jPanel6Layout.setVerticalGroup(
+            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel6Layout.createSequentialGroup()
+                .addGap(49, 49, 49)
+                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel39, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel41, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jLabel67)
+                    .addGroup(jPanel6Layout.createSequentialGroup()
+                        .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(book_name, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel37)
+                            .addComponent(book_id_search, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel40))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(book_quantity, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel38)
+                            .addComponent(book_category_search, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel42))
+                        .addGap(18, 18, 18)
+                        .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel66)
+                            .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(book_id, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(book_author_search, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jLabel43)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel6Layout.createSequentialGroup()
+                                .addComponent(book_category, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(5, 5, 5))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(book_publisher_search, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jLabel70)))))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel68)
+                    .addComponent(book_author, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jLabel69)
+                    .addComponent(book_publisher, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(book_reviewButton)
+                    .addComponent(book_searchButton)
+                    .addComponent(book_borrowButton))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        javax.swing.GroupLayout book_panelLayout = new javax.swing.GroupLayout(book_panel);
+        book_panel.setLayout(book_panelLayout);
+        book_panelLayout.setHorizontalGroup(
+            book_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(book_panelLayout.createSequentialGroup()
+                .addComponent(jScrollPane7)
+                .addContainerGap())
+        );
+        book_panelLayout.setVerticalGroup(
+            book_panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, book_panelLayout.createSequentialGroup()
+                .addGap(0, 0, 0)
+                .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(0, 0, 0)
+                .addComponent(jScrollPane7, javax.swing.GroupLayout.PREFERRED_SIZE, 330, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(17, 17, 17))
+        );
+
+        Parent_panel.add(book_panel, "card7");
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -1613,6 +2054,8 @@ public class UserDashboard extends javax.swing.JFrame {
             }
             else{
                 JOptionPane.showMessageDialog(this, "Error");
+                contact_number_label.setText(old_contact);
+                email_label.setText(old_email);
             }
         } catch (SQLException ex) {
             Logger.getLogger(AdminDashboard.class.getName()).log(Level.SEVERE, null, ex);
@@ -1679,7 +2122,484 @@ public class UserDashboard extends javax.swing.JFrame {
 
     private void goToLibrary_buttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goToLibrary_buttonActionPerformed
         // TODO add your handling code here:
+        // TODO add your handling code here:
+        Parent_panel.removeAll();
+        Parent_panel.add(book_panel);
+        Parent_panel.repaint();
+        Parent_panel.revalidate();
+        Book_panelLoad();
+        TurnOffButtons();
+        goToLibrary_button.setBackground(new Color(255,0,51));
     }//GEN-LAST:event_goToLibrary_buttonActionPerformed
+
+    private void book_tableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_book_tableMouseClicked
+        // TODO add your handling code here:
+        DefaultTableModel model = (DefaultTableModel)book_table.getModel();
+        int clickedRow = book_table.rowAtPoint(evt.getPoint());
+        if(clickedRow == NO_SELECTION) {
+            book_borrowButton.setEnabled(false);
+            book_reviewButton.setEnabled(false);
+            book_searchButton.setEnabled(true);
+            return;
+        }
+        table_status.Previous_book_selected = clickedRow;
+        int selectIndex = book_table.getSelectedRow();
+        //        book_id.setSelectedItem(model.getValueAt(selectIndex,0).toString());
+        book_id.setText(model.getValueAt(selectIndex, 0).toString());
+        book_name.setText(model.getValueAt(selectIndex,1).toString());
+        book_category.setSelectedItem((CategoryItem)model.getValueAt(selectIndex,2));
+        book_author.setSelectedItem((AuthorItem)model.getValueAt(selectIndex,3));
+        book_publisher.setSelectedItem((PublisherItem)model.getValueAt(selectIndex,4));
+        book_quantity.setText(model.getValueAt(selectIndex,5).toString());
+        if(Integer.parseInt(model.getValueAt(selectIndex,5).toString()) <= 0){
+            book_borrowButton.setEnabled(false);
+        }
+        else {
+            book_borrowButton.setEnabled(true);
+        }
+        book_searchButton.setEnabled(true);
+        book_reviewButton.setEnabled(true);
+    }//GEN-LAST:event_book_tableMouseClicked
+
+    private void book_id_searchItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_book_id_searchItemStateChanged
+        //         TODO add your handling code here:
+        //        if(evt.getStateChange() == ItemEvent.SELECTED){
+            //            if(!book_combobox_check.book_id_check || !book_combobox_check.book_category_check
+                //                || !book_combobox_check.book_author_check || !book_combobox_check.book_publisher_check){
+                //                return;
+                //            }
+            //                String baseQuery = "SELECT b.Book_ID, b.Name,c.Category_ID ,c.Name as Category,a.Author_ID,a.Name as Author,p.Publisher_ID,p.Name as Publisher, b.Quantity "
+            //                    + "FROM `books`b JOIN categories c ON b.Category_ID = c.Category_ID "
+            //                    + "JOIN authors a ON b.Author_ID = a.Author_ID JOIN publishers p ON b.Publisher_ID = p.Publisher_ID WHERE 1=1";
+            //            ArrayList<String> conditions = new ArrayList<>();
+            //            ArrayList<Object> parameters = new ArrayList<>();
+            //            boolean isID_All = true;
+            //            boolean isCategory_All = true;
+            //            boolean isAuthor_All = true;
+            //            boolean isPublisher_All = true;
+            //
+            //            if(book_id.getSelectedIndex() != 0) isID_All = false;
+            //            if(book_category.getSelectedIndex() != 0) isCategory_All = false;
+            //            if(book_author.getSelectedIndex() != 0) isAuthor_All = false;
+            //            if(book_publisher.getSelectedIndex() != 0) isPublisher_All = false;
+            //
+            //            if(!isID_All) {
+                //                conditions.add("b.Book_ID = ? ");
+                //                parameters.add(book_id.getSelectedItem().toString());
+                //            }
+            //            if(!isCategory_All) {
+                //                conditions.add("c.Category_ID = ? ");
+                //                CategoryItem ci = (CategoryItem)book_category.getSelectedItem();
+                //                parameters.add(ci.getId());
+                //            }
+            //            if(!isAuthor_All) {
+                //                conditions.add("a.Author_ID = ? ");
+                //                AuthorItem ai = (AuthorItem)book_author.getSelectedItem();
+                //                parameters.add(ai.getId());
+                //            }
+            //            if(!isPublisher_All) {
+                //                conditions.add("p.Publisher_ID = ? ");
+                //                PublisherItem pi = (PublisherItem)book_publisher.getSelectedItem();
+                //                parameters.add(pi.getId());
+                //            }
+            //            for (String condition : conditions) {
+                //                baseQuery += " AND " + condition;
+                //            }
+            //
+            //            try {
+                //                    PreparedStatement ps = con.prepareStatement(baseQuery);
+                //                    for (int i = 0; i < parameters.size(); i++) {
+                    //                    ps.setObject(i+1, parameters.get(i));
+                    //                }
+                //                    ResultSet r = ps.executeQuery();
+                //
+                //                    ResultSetMetaData rsd = r.getMetaData();
+                //                    int columns = rsd.getColumnCount();
+                //
+                //                    DefaultTableModel model = (DefaultTableModel)book_table.getModel();
+                //                    model.setRowCount(0);
+                //
+                //                    while(r.next()){
+                    //                        Object[] obj = new Object[columns];
+                    //                        obj[0] = r.getString("Book_ID");
+                    //                        obj[1] = r.getString("Name");
+                    //                        obj[2] = new CategoryItem(r.getInt("Category_ID"), r.getString("Category"));
+                    //                        obj[3] = new AuthorItem(r.getInt("Author_ID"), r.getString("Author"));
+                    //                        obj[4] = new PublisherItem(r.getInt("Publisher_ID"), r.getString("Publisher"));
+                    //                        obj[5] = r.getString("Quantity");
+                    //                        model.addRow(obj);
+                    //                    }
+                //
+                //                } catch (SQLException ex) {
+                //                Logger.getLogger(AdminDashboard.class.getName()).log(Level.SEVERE, null, ex);
+                //            }
+            //        }
+    }//GEN-LAST:event_book_id_searchItemStateChanged
+
+    private void book_authorItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_book_authorItemStateChanged
+        // TODO add your handling code here:
+        //        if(evt.getStateChange() == ItemEvent.SELECTED){
+            //            if(!book_combobox_check.book_id_check || !book_combobox_check.book_category_check
+                //                || !book_combobox_check.book_author_check || !book_combobox_check.book_publisher_check){
+                //                return;
+                //            }
+            //                String baseQuery = "SELECT b.Book_ID, b.Name,c.Category_ID ,c.Name as Category,a.Author_ID,a.Name as Author,p.Publisher_ID,p.Name as Publisher, b.Quantity "
+            //                    + "FROM `books`b JOIN categories c ON b.Category_ID = c.Category_ID "
+            //                    + "JOIN authors a ON b.Author_ID = a.Author_ID JOIN publishers p ON b.Publisher_ID = p.Publisher_ID WHERE 1=1";
+            //            ArrayList<String> conditions = new ArrayList<>();
+            //            ArrayList<Object> parameters = new ArrayList<>();
+            //            boolean isID_All = true;
+            //            boolean isCategory_All = true;
+            //            boolean isAuthor_All = true;
+            //            boolean isPublisher_All = true;
+            //
+            //            if(book_id.getSelectedIndex() != 0) isID_All = false;
+            //            if(book_category.getSelectedIndex() != 0) isCategory_All = false;
+            //            if(book_author.getSelectedIndex() != 0) isAuthor_All = false;
+            //            if(book_publisher.getSelectedIndex() != 0) isPublisher_All = false;
+            //
+            //            if(!isID_All) {
+                //                conditions.add("b.Book_ID = ? ");
+                //                parameters.add(book_id.getSelectedItem().toString());
+                //            }
+            //            if(!isCategory_All) {
+                //                conditions.add("c.Category_ID = ? ");
+                //                CategoryItem ci = (CategoryItem)book_category.getSelectedItem();
+                //                parameters.add(ci.getId());
+                //            }
+            //            if(!isAuthor_All) {
+                //                conditions.add("a.Author_ID = ? ");
+                //                AuthorItem ai = (AuthorItem)book_author.getSelectedItem();
+                //                parameters.add(ai.getId());
+                //            }
+            //            if(!isPublisher_All) {
+                //                conditions.add("p.Publisher_ID = ? ");
+                //                PublisherItem pi = (PublisherItem)book_publisher.getSelectedItem();
+                //                parameters.add(pi.getId());
+                //            }
+            //            for (String condition : conditions) {
+                //                baseQuery += " AND " + condition;
+                //            }
+            //
+            //            try {
+                //                    PreparedStatement ps = con.prepareStatement(baseQuery);
+                //                    for (int i = 0; i < parameters.size(); i++) {
+                    //                    ps.setObject(i+1, parameters.get(i));
+                    //                }
+                //                    ResultSet r = ps.executeQuery();
+                //
+                //                    ResultSetMetaData rsd = r.getMetaData();
+                //                    int columns = rsd.getColumnCount();
+                //
+                //                    DefaultTableModel model = (DefaultTableModel)book_table.getModel();
+                //                    model.setRowCount(0);
+                //
+                //                    while(r.next()){
+                    //                        Object[] obj = new Object[columns];
+                    //                        obj[0] = r.getString("Book_ID");
+                    //                        obj[1] = r.getString("Name");
+                    //                        obj[2] = new CategoryItem(r.getInt("Category_ID"), r.getString("Category"));
+                    //                        obj[3] = new AuthorItem(r.getInt("Author_ID"), r.getString("Author"));
+                    //                        obj[4] = new PublisherItem(r.getInt("Publisher_ID"), r.getString("Publisher"));
+                    //                        obj[5] = r.getString("Quantity");
+                    //                        model.addRow(obj);
+                    //                    }
+                //
+                //                } catch (SQLException ex) {
+                //                Logger.getLogger(AdminDashboard.class.getName()).log(Level.SEVERE, null, ex);
+                //            }
+            //        }
+    }//GEN-LAST:event_book_authorItemStateChanged
+
+    private void book_publisherItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_book_publisherItemStateChanged
+        // TODO add your handling code here:
+        //        if(evt.getStateChange() == ItemEvent.SELECTED){
+            //            if(!book_combobox_check.book_id_check || !book_combobox_check.book_category_check
+                //                || !book_combobox_check.book_author_check || !book_combobox_check.book_publisher_check){
+                //                return;
+                //            }
+            //                String baseQuery = "SELECT b.Book_ID, b.Name,c.Category_ID ,c.Name as Category,a.Author_ID,a.Name as Author,p.Publisher_ID,p.Name as Publisher, b.Quantity "
+            //                    + "FROM `books`b JOIN categories c ON b.Category_ID = c.Category_ID "
+            //                    + "JOIN authors a ON b.Author_ID = a.Author_ID JOIN publishers p ON b.Publisher_ID = p.Publisher_ID WHERE 1=1";
+            //            ArrayList<String> conditions = new ArrayList<>();
+            //            ArrayList<Object> parameters = new ArrayList<>();
+            //            boolean isID_All = true;
+            //            boolean isCategory_All = true;
+            //            boolean isAuthor_All = true;
+            //            boolean isPublisher_All = true;
+            //
+            //            if(book_id.getSelectedIndex() != 0) isID_All = false;
+            //            if(book_category.getSelectedIndex() != 0) isCategory_All = false;
+            //            if(book_author.getSelectedIndex() != 0) isAuthor_All = false;
+            //            if(book_publisher.getSelectedIndex() != 0) isPublisher_All = false;
+            //
+            //            if(!isID_All) {
+                //                conditions.add("b.Book_ID = ? ");
+                //                parameters.add(book_id.getSelectedItem().toString());
+                //            }
+            //            if(!isCategory_All) {
+                //                conditions.add("c.Category_ID = ? ");
+                //                CategoryItem ci = (CategoryItem)book_category.getSelectedItem();
+                //                parameters.add(ci.getId());
+                //            }
+            //            if(!isAuthor_All) {
+                //                conditions.add("a.Author_ID = ? ");
+                //                AuthorItem ai = (AuthorItem)book_author.getSelectedItem();
+                //                parameters.add(ai.getId());
+                //            }
+            //            if(!isPublisher_All) {
+                //                conditions.add("p.Publisher_ID = ? ");
+                //                PublisherItem pi = (PublisherItem)book_publisher.getSelectedItem();
+                //                parameters.add(pi.getId());
+                //            }
+            //            for (String condition : conditions) {
+                //                baseQuery += " AND " + condition;
+                //            }
+            //
+            //            try {
+                //                    PreparedStatement ps = con.prepareStatement(baseQuery);
+                //                    for (int i = 0; i < parameters.size(); i++) {
+                    //                    ps.setObject(i+1, parameters.get(i));
+                    //                }
+                //                    ResultSet r = ps.executeQuery();
+                //
+                //                    ResultSetMetaData rsd = r.getMetaData();
+                //                    int columns = rsd.getColumnCount();
+                //
+                //                    DefaultTableModel model = (DefaultTableModel)book_table.getModel();
+                //                    model.setRowCount(0);
+                //
+                //                    while(r.next()){
+                    //                        Object[] obj = new Object[columns];
+                    //                        obj[0] = r.getString("Book_ID");
+                    //                        obj[1] = r.getString("Name");
+                    //                        obj[2] = new CategoryItem(r.getInt("Category_ID"), r.getString("Category"));
+                    //                        obj[3] = new AuthorItem(r.getInt("Author_ID"), r.getString("Author"));
+                    //                        obj[4] = new PublisherItem(r.getInt("Publisher_ID"), r.getString("Publisher"));
+                    //                        obj[5] = r.getString("Quantity");
+                    //                        model.addRow(obj);
+                    //                    }
+                //
+                //                } catch (SQLException ex) {
+                //                Logger.getLogger(AdminDashboard.class.getName()).log(Level.SEVERE, null, ex);
+                //            }
+            //        }
+    }//GEN-LAST:event_book_publisherItemStateChanged
+
+    private void book_categoryItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_book_categoryItemStateChanged
+        // TODO add your handling code here:
+        //        if(evt.getStateChange() == ItemEvent.SELECTED){
+            //            if(!book_combobox_check.book_id_check || !book_combobox_check.book_category_check
+                //                || !book_combobox_check.book_author_check || !book_combobox_check.book_publisher_check){
+                //                return;
+                //            }
+            //                String baseQuery = "SELECT b.Book_ID, b.Name,c.Category_ID ,c.Name as Category,a.Author_ID,a.Name as Author,p.Publisher_ID,p.Name as Publisher, b.Quantity "
+            //                    + "FROM `books`b JOIN categories c ON b.Category_ID = c.Category_ID "
+            //                    + "JOIN authors a ON b.Author_ID = a.Author_ID JOIN publishers p ON b.Publisher_ID = p.Publisher_ID WHERE 1=1";
+            //            ArrayList<String> conditions = new ArrayList<>();
+            //            ArrayList<Object> parameters = new ArrayList<>();
+            //            boolean isID_All = true;
+            //            boolean isCategory_All = true;
+            //            boolean isAuthor_All = true;
+            //            boolean isPublisher_All = true;
+            //
+            //            if(book_id.getSelectedIndex() != 0) isID_All = false;
+            //            if(book_category.getSelectedIndex() != 0) isCategory_All = false;
+            //            if(book_author.getSelectedIndex() != 0) isAuthor_All = false;
+            //            if(book_publisher.getSelectedIndex() != 0) isPublisher_All = false;
+            //
+            //            if(!isID_All) {
+                //                conditions.add("b.Book_ID = ? ");
+                //                parameters.add(book_id.getSelectedItem().toString());
+                //            }
+            //            if(!isCategory_All) {
+                //                conditions.add("c.Category_ID = ? ");
+                //                CategoryItem ci = (CategoryItem)book_category.getSelectedItem();
+                //                parameters.add(ci.getId());
+                //            }
+            //            if(!isAuthor_All) {
+                //                conditions.add("a.Author_ID = ? ");
+                //                AuthorItem ai = (AuthorItem)book_author.getSelectedItem();
+                //                parameters.add(ai.getId());
+                //            }
+            //            if(!isPublisher_All) {
+                //                conditions.add("p.Publisher_ID = ? ");
+                //                PublisherItem pi = (PublisherItem)book_publisher.getSelectedItem();
+                //                parameters.add(pi.getId());
+                //            }
+            //            for (String condition : conditions) {
+                //                baseQuery += " AND " + condition;
+                //            }
+            //
+            //            try {
+                //                    PreparedStatement ps = con.prepareStatement(baseQuery);
+                //                    for (int i = 0; i < parameters.size(); i++) {
+                    //                    ps.setObject(i+1, parameters.get(i));
+                    //                }
+                //                    ResultSet r = ps.executeQuery();
+                //
+                //                    ResultSetMetaData rsd = r.getMetaData();
+                //                    int columns = rsd.getColumnCount();
+                //
+                //                    DefaultTableModel model = (DefaultTableModel)book_table.getModel();
+                //                    model.setRowCount(0);
+                //
+                //                    while(r.next()){
+                    //                        Object[] obj = new Object[columns];
+                    //                        obj[0] = r.getString("Book_ID");
+                    //                        obj[1] = r.getString("Name");
+                    //                        obj[2] = new CategoryItem(r.getInt("Category_ID"), r.getString("Category"));
+                    //                        obj[3] = new AuthorItem(r.getInt("Author_ID"), r.getString("Author"));
+                    //                        obj[4] = new PublisherItem(r.getInt("Publisher_ID"), r.getString("Publisher"));
+                    //                        obj[5] = r.getString("Quantity");
+                    //                        model.addRow(obj);
+                    //                    }
+                //
+                //                } catch (SQLException ex) {
+                //                Logger.getLogger(AdminDashboard.class.getName()).log(Level.SEVERE, null, ex);
+                //            }
+            //        }
+    }//GEN-LAST:event_book_categoryItemStateChanged
+
+    private void book_searchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_book_searchButtonActionPerformed
+        // TODO add your handling code here:
+        String baseQuery = "SELECT b.Book_ID, b.Name,c.Category_ID ,c.Name as Category,a.Author_ID,a.Name as Author,p.Publisher_ID,p.Name as Publisher, b.Quantity "
+        + "FROM `books`b JOIN categories c ON b.Category_ID = c.Category_ID "
+        + "JOIN authors a ON b.Author_ID = a.Author_ID JOIN publishers p ON b.Publisher_ID = p.Publisher_ID WHERE 1=1";
+        ArrayList<String> conditions = new ArrayList<>();
+        ArrayList<Object> parameters = new ArrayList<>();
+        boolean isID_All = true;
+        boolean isCategory_All = true;
+        boolean isAuthor_All = true;
+        boolean isPublisher_All = true;
+
+        if(book_id_search.getSelectedIndex() != 0) isID_All = false;
+        if(book_category_search.getSelectedIndex() != 0) isCategory_All = false;
+        if(book_author_search.getSelectedIndex() != 0) isAuthor_All = false;
+        if(book_publisher_search.getSelectedIndex() != 0) isPublisher_All = false;
+
+        if(!isID_All) {
+            conditions.add("b.Book_ID = ? ");
+            parameters.add(book_id_search.getSelectedItem().toString());
+        }
+        if(!isCategory_All) {
+            conditions.add("c.Category_ID = ? ");
+            CategoryItem ci = (CategoryItem)book_category_search.getSelectedItem();
+            parameters.add(ci.getId());
+        }
+        if(!isAuthor_All) {
+            conditions.add("a.Author_ID = ? ");
+            AuthorItem ai = (AuthorItem)book_author_search.getSelectedItem();
+            parameters.add(ai.getId());
+        }
+        if(!isPublisher_All) {
+            conditions.add("p.Publisher_ID = ? ");
+            PublisherItem pi = (PublisherItem)book_publisher_search.getSelectedItem();
+            parameters.add(pi.getId());
+        }
+        for (String condition : conditions) {
+            baseQuery += " AND " + condition;
+        }
+
+        try {
+            PreparedStatement ps = con.prepareStatement(baseQuery);
+            for (int i = 0; i < parameters.size(); i++) {
+                ps.setObject(i+1, parameters.get(i));
+            }
+            ResultSet r = ps.executeQuery();
+
+            ResultSetMetaData rsd = r.getMetaData();
+            int columns = rsd.getColumnCount();
+
+            DefaultTableModel model = (DefaultTableModel)book_table.getModel();
+            model.setRowCount(0);
+
+            while(r.next()){
+                Object[] obj = new Object[columns];
+                obj[0] = r.getString("Book_ID");
+                obj[1] = r.getString("Name");
+                obj[2] = new CategoryItem(r.getInt("Category_ID"), r.getString("Category"));
+                obj[3] = new AuthorItem(r.getInt("Author_ID"), r.getString("Author"));
+                obj[4] = new PublisherItem(r.getInt("Publisher_ID"), r.getString("Publisher"));
+                obj[5] = r.getString("Quantity");
+                model.addRow(obj);
+            }
+
+        } catch (SQLException ex) {
+            Logger.getLogger(AdminDashboard.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_book_searchButtonActionPerformed
+
+    private void book_borrowButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_book_borrowButtonActionPerformed
+        // TODO add your handling code here:
+        String IDCurrentBook = ((DefaultTableModel)book_table.getModel()).getValueAt(book_table.getSelectedRow(),0).toString();
+        String sql_cmd_1 = "SELECT issuebooks.Status FROM issuebooks WHERE issuebooks.UserName = ? AND issuebooks.Book_ID = ? ";
+        String sql_cmd_UpdateCountBook = "UPDATE books SET books.Quantity = books.Quantity - 1 WHERE books.Book_ID = ? ";
+        
+        try{
+            pst = con.prepareStatement(sql_cmd_1);
+            pst.setString(1, AccountName);
+            pst.setString(2, IDCurrentBook);
+            rs = pst.executeQuery();
+            if(!rs.next()){//Trường hợp User chưa hề có hành động mượn trả sách này
+                con.setAutoCommit(false);
+                PreparedStatement pst_UpdateCountBook = con.prepareStatement(sql_cmd_UpdateCountBook);
+                pst_UpdateCountBook.setString(1, IDCurrentBook);
+                pst_UpdateCountBook.executeUpdate();
+                
+                String sql_cmd_InsertNewIssue = "INSERT INTO issuebooks (Book_ID, UserName, IssueDate, DueDate, Status) VALUES (?, ?, ?, ?, ?)";
+                PreparedStatement pst_UpdateInsertIssues = con.prepareStatement(sql_cmd_InsertNewIssue);
+                pst_UpdateInsertIssues.setString(1, book_id.getText());
+                pst_UpdateInsertIssues.setString(2, AccountName);
+                pst_UpdateInsertIssues.setString(3, LocalDateTime.now().format(formatter));
+                pst_UpdateInsertIssues.setString(4, LocalDateTime.now().plusDays(14).format(formatter));
+                pst_UpdateInsertIssues.setString(5, "Borrowed");
+                pst_UpdateInsertIssues.executeUpdate();
+                
+                con.commit();
+                
+                con.setAutoCommit(true);
+            }
+            else{// Đã từng có lịch sử mượn trả sách 
+                if(rs.getString(1).equals("Borrowed") == true || rs.getString(1).equals("OverTime") == true){// Đang mượn hoặc đang quá hạn(Cũng là mượn).
+                    JOptionPane.showMessageDialog(this, "This book is borrowing");
+                }
+                else{//Đã từng mượn và đã trả
+                    con.setAutoCommit(false);
+                
+                    PreparedStatement pst_UpdateCountBook = con.prepareStatement(sql_cmd_UpdateCountBook);
+                    pst_UpdateCountBook.setString(1, IDCurrentBook);
+                    pst_UpdateCountBook.executeUpdate();
+
+                    String sql_cmd_UpdateStatus = "UPDATE issuebooks SET issuebooks.Status = ? , issuebooks.IssueDate = ? , issuebooks.DueDate = ? WHERE issuebooks.UserName = ? AND issuebooks.Book_ID = ? ";
+                    PreparedStatement pst_UpdateStatus = con.prepareStatement(sql_cmd_UpdateStatus);
+                    pst_UpdateStatus.setString(1, "Borrowed");
+                    pst_UpdateStatus.setString(2, LocalDateTime.now().format(formatter));
+                    pst_UpdateStatus.setString(3, LocalDateTime.now().plusDays(14).format(formatter));
+                    pst_UpdateStatus.setString(4, AccountName);
+                    pst_UpdateStatus.setString(5, IDCurrentBook);
+                    pst_UpdateStatus.executeUpdate();
+
+                    con.commit();
+
+                    con.setAutoCommit(true);
+                }
+                
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(AdminDashboard.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        Book_panelLoad();
+    }//GEN-LAST:event_book_borrowButtonActionPerformed
+
+    private void book_reviewButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_book_reviewButtonActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_book_reviewButtonActionPerformed
+
+    private void view_book_search_jscrollMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_view_book_search_jscrollMouseClicked
+        // TODO add your handling code here:
+        SearchBook_panel_Load();
+    }//GEN-LAST:event_view_book_search_jscrollMouseClicked
 
     /**
      * @param args the command line arguments
@@ -1711,6 +2631,7 @@ public class UserDashboard extends javax.swing.JFrame {
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
+            @Override
             public void run() {
                 new UserDashboard("user").setVisible(true);
             }
@@ -1726,8 +2647,23 @@ public class UserDashboard extends javax.swing.JFrame {
     private javax.swing.JLabel account_name;
     private javax.swing.JLabel account_name_label;
     private app.bolivia.swing.JCTextField bookName_text;
+    private javax.swing.JComboBox<AuthorItem> book_author;
+    private javax.swing.JComboBox book_author_search;
+    private javax.swing.JButton book_borrowButton;
+    private javax.swing.JComboBox<CategoryItem> book_category;
+    private javax.swing.JComboBox book_category_search;
+    private javax.swing.JTextField book_id;
     private javax.swing.JLabel book_id_label;
+    private javax.swing.JComboBox book_id_search;
+    private javax.swing.JTextField book_name;
     private javax.swing.JLabel book_name_label;
+    private javax.swing.JPanel book_panel;
+    private javax.swing.JComboBox<PublisherItem> book_publisher;
+    private javax.swing.JComboBox book_publisher_search;
+    private javax.swing.JTextField book_quantity;
+    private javax.swing.JButton book_reviewButton;
+    private javax.swing.JButton book_searchButton;
+    private rojeru_san.complementos.RSTableMetro book_table;
     private javax.swing.JLabel borrowedNumber;
     private javax.swing.JButton change_password_button;
     private javax.swing.JPanel changepassword_panel;
@@ -1775,10 +2711,22 @@ public class UserDashboard extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel34;
     private javax.swing.JLabel jLabel35;
     private javax.swing.JLabel jLabel36;
+    private javax.swing.JLabel jLabel37;
+    private javax.swing.JLabel jLabel38;
+    private javax.swing.JLabel jLabel39;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel40;
+    private javax.swing.JLabel jLabel41;
+    private javax.swing.JLabel jLabel42;
+    private javax.swing.JLabel jLabel43;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel66;
+    private javax.swing.JLabel jLabel67;
+    private javax.swing.JLabel jLabel68;
+    private javax.swing.JLabel jLabel69;
     private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel70;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
@@ -1789,10 +2737,12 @@ public class UserDashboard extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
+    private javax.swing.JPanel jPanel6;
     private javax.swing.JPanel jPanel7;
     private javax.swing.JPanel jPanel8;
     private javax.swing.JPanel jPanel9;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane7;
     private javax.swing.JButton logout_button;
     private javax.swing.JLabel member_infor_label;
     private javax.swing.JButton myBookShelf_button;

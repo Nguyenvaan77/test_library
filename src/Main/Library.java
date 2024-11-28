@@ -45,7 +45,7 @@ public class Library extends javax.swing.JFrame {
         }
     }
     
-//---------------------------------------------------------------------------------------------------
+    //---------------------------------------------------------------------------------------------------
 //  *** Search Page
 //  0. Load greetingLibraryPage
     private void Library_greetingLoad(){
@@ -56,7 +56,7 @@ public class Library extends javax.swing.JFrame {
         Lib_publisher_text.setText("");
         Lib_quantity_consttext.setText("0");
     }
-//  1. Initialize search_page
+    //  1. Initialize search_page
     private void Library_Load() {
         Library_panel_Load();
         Library_view_bookJSC_Load();
@@ -80,7 +80,7 @@ public class Library extends javax.swing.JFrame {
             pst.setString(4, "%" + Lib_author_text.getText() + "%");
             pst.setString(5, "%" + Lib_publisher_text.getText() + "%");
             rs = pst.executeQuery();
-            DefaultTableModel model = (DefaultTableModel) Lib_view_book_ljscroll.getModel();
+            DefaultTableModel model = (DefaultTableModel) Lib_view_book_jscroll.getModel();
             model.setNumRows(0);
             while (rs.next()) {
                 Object[] obj = {rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6)};
@@ -99,75 +99,48 @@ public class Library extends javax.swing.JFrame {
             Lib_muonSach_button.setEnabled(false);
         }
         else{
-        Lib_muonSach_button.setEnabled(true);
+            Lib_muonSach_button.setEnabled(true);
         }
     }
 
-    //  1.2.2 Load text od search panel
-    private void Library_textLoad() {
-        String sql_cmd = " SELECT books.Quantity "
-                + " FROM books "
-                + " WHERE books.Book_ID LIKE ? AND books.Name LIKE ? AND books.Category_ID LIKE ? AND books.Author_ID LIKE ? AND books.Publisher_ID LIKE ? ";
+    //  1.2.2 Load text on search panel
+    private void Library_textLoad(){
         try {
-            pst = con.prepareStatement(sql_cmd);
-            pst.setString(1, "%" + Lib_id_text.getText() + "%");
-            pst.setString(2, "%" + Lib_bookName_text.getText() + "%");
-            pst.setString(3, "%" + Lib_cate_text.getText() + "%");
-            pst.setString(4, "%" + Lib_author_text.getText() + "%");
-            pst.setString(5, "%" + Lib_publisher_text.getText() + "%");
-            rs = pst.executeQuery();
-            rs.next();
-            Lib_quantity_consttext.setText(rs.getString(1));
-        } catch (SQLException ex) {
-            Logger.getLogger(AdminDashboard.class.getName()).log(Level.SEVERE, null, ex);
+            if(jscrollIsSelected()){
+                String sql_cmd = " SELECT books.Book_ID, books.Name, books.Category_ID, books.Author_ID, books.Publisher_ID, books.Quantity "
+                        + " FROM books "
+                        + " WHERE books.Book_ID = ? ";
+                pst = con.prepareStatement(sql_cmd);
+                pst.setString(1,getBookIdIsSelected());
+                rs = pst.executeQuery();
+                rs.next();
+                Lib_id_text.setText(rs.getString(1));
+                Lib_bookName_text.setText(rs.getString(2));
+                Lib_cate_text.setText(rs.getString(3));
+                Lib_author_text.setText(rs.getString(4));
+                Lib_publisher_text.setText(rs.getString(5));
+                Lib_quantity_consttext.setText(rs.getString(6));
+            }
         }
-    }
-    //1.2.2.* Load and show information's book which is selected in jscroll
-    private void LoadAndShowInfor(String bookName){
-        String sql_cmd = " SELECT books.Book_ID, books.Name, books.Category_ID, books.Author_ID, books.Publisher_ID, books.Quantity "
-                + " FROM books "
-                + " WHERE books.Book_ID LIKE ? AND books.Name LIKE ? AND books.Category_ID LIKE ? AND books.Author_ID LIKE ? AND books.Publisher_ID LIKE ? ";
-        try {
-            pst = con.prepareStatement(sql_cmd);
-            pst.setString(1, "%" + Lib_id_text.getText() + "%");
-            pst.setString(2, "%" + Lib_bookName_text.getText() + "%");
-            pst.setString(3, "%" + Lib_cate_text.getText() + "%");
-            pst.setString(4, "%" + Lib_author_text.getText() + "%");
-            pst.setString(5, "%" + Lib_publisher_text.getText() + "%");
-            rs = pst.executeQuery();
-            rs.next();
-            Lib_quantity_consttext.setText(rs.getString(1));
-            
-        } catch (SQLException ex) {
+        catch (SQLException ex) {
             Logger.getLogger(AdminDashboard.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 //******************************************************************************
-    //  *** Return Book 
-//  1. Check What Row is chosen
-    private int indexOfRow() {// trả về thứ tự của dòng trong bảng bắt đầu từ 0, nếu không có dòng nào được chọn thì trả về - 1
-        return Lib_view_book_ljscroll.getSelectedRow();
+//  1. Check jscroll id Selected -1 if not and intdex >= 0 if it is selected
+    private int indexOfRowJscroll(){
+        return Lib_view_book_jscroll.getSelectedRow();
     }
-    //  2. Return Book
-    private boolean returnBook() {
-        int indexBook = indexOfRow();
 
-        if (indexOfRow() == -1 || Lib_view_book_ljscroll.getValueAt(indexBook, 4).equals("Returned")) {
-            return false;
-        }
+    private boolean jscrollIsSelected(){
+        return indexOfRowJscroll() >= 0;
+    }
 
-        String sql_cmd = "UPDATE issuebooks SET issuebooks.Status = ? WHERE issuebooks.Book_ID = ? ";
-        try {
-            pst = con.prepareStatement(sql_cmd);
-            pst.setString(1, "Returned");
-            pst.setString(2, (String) Lib_view_book_ljscroll.getValueAt(indexBook, 0));
-            if(pst.executeUpdate() > 0){
-                return true;
-            }
-        } catch (SQLException ex) {
-            Logger.getLogger(AdminDashboard.class.getName()).log(Level.SEVERE, null, ex);
+    private String getBookIdIsSelected(){
+        if(jscrollIsSelected()){
+            return (String)Lib_view_book_jscroll.getValueAt(indexOfRowJscroll(),0);
         }
-        return false;
+        return "";
     }
 //*****************************************************************************
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -183,7 +156,7 @@ public class Library extends javax.swing.JFrame {
         home_page_panel = new javax.swing.JPanel();
         librarypage_panel = new javax.swing.JPanel();
         Lib_view_book_jscrollPane = new javax.swing.JScrollPane();
-        Lib_view_book_ljscroll = new rojeru_san.complementos.RSTableMetro();
+        Lib_view_book_jscroll = new rojeru_san.complementos.RSTableMetro();
         library_panel = new javax.swing.JPanel();
         library_label = new javax.swing.JLabel();
         Lib_book_id_label = new javax.swing.JLabel();
@@ -209,7 +182,7 @@ public class Library extends javax.swing.JFrame {
 
         librarypage_panel.setBackground(new java.awt.Color(186, 221, 255));
 
-        Lib_view_book_ljscroll.setModel(new javax.swing.table.DefaultTableModel(
+        Lib_view_book_jscroll.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
             },
@@ -232,15 +205,20 @@ public class Library extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
-        Lib_view_book_ljscroll.setColorFilasBackgound2(new java.awt.Color(255, 255, 255));
-        Lib_view_book_ljscroll.setRowHeight(50);
-        Lib_view_book_ljscroll.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        Lib_view_book_ljscroll.addFocusListener(new java.awt.event.FocusAdapter() {
+        Lib_view_book_jscroll.setColorFilasBackgound2(new java.awt.Color(255, 255, 255));
+        Lib_view_book_jscroll.setRowHeight(50);
+        Lib_view_book_jscroll.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        Lib_view_book_jscroll.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
-                Lib_view_book_ljscrollFocusGained(evt);
+                Lib_view_book_jscrollFocusGained(evt);
             }
         });
-        Lib_view_book_jscrollPane.setViewportView(Lib_view_book_ljscroll);
+        Lib_view_book_jscroll.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                Lib_view_book_jscrollMouseClicked(evt);
+            }
+        });
+        Lib_view_book_jscrollPane.setViewportView(Lib_view_book_jscroll);
 
         library_label.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
         library_label.setText("Library");
@@ -451,9 +429,14 @@ public class Library extends javax.swing.JFrame {
         
     }//GEN-LAST:event_Lib_muonSach_buttonActionPerformed
 
-    private void Lib_view_book_ljscrollFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_Lib_view_book_ljscrollFocusGained
+    private void Lib_view_book_jscrollFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_Lib_view_book_jscrollFocusGained
         // TODO add your handling code here:
-    }//GEN-LAST:event_Lib_view_book_ljscrollFocusGained
+    }//GEN-LAST:event_Lib_view_book_jscrollFocusGained
+
+    private void Lib_view_book_jscrollMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_Lib_view_book_jscrollMouseClicked
+        // TODO add your handling code here:
+        Library_panel_Load();
+    }//GEN-LAST:event_Lib_view_book_jscrollMouseClicked
 
     /**
      * @param args the command line arguments
@@ -509,8 +492,8 @@ public class Library extends javax.swing.JFrame {
     private javax.swing.JLabel Lib_quantity_label;
     private javax.swing.JButton Lib_timKiem_button;
     private javax.swing.JButton Lib_toanBo_button;
+    private rojeru_san.complementos.RSTableMetro Lib_view_book_jscroll;
     private javax.swing.JScrollPane Lib_view_book_jscrollPane;
-    private rojeru_san.complementos.RSTableMetro Lib_view_book_ljscroll;
     private javax.swing.JPanel home_page_panel;
     private javax.swing.JLabel library_label;
     private javax.swing.JPanel library_panel;
